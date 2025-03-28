@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.serializers import serialize
 import json
 from .services import create_user_service, get_users_service, get_user_service, update_user_service, delete_user_service
 
@@ -19,9 +20,10 @@ def get_users(request):
 def get_user(request, user_id):
     if request.method == 'GET':
         user = get_user_service(user_id)
+        user_json = json.loads(serialize('json', user))
         if user is None:
             return JsonResponse({"message": "user not found","Message code": 404, "data": None})
-        return JsonResponse({"message": "get success","Message code": 200, "data": user.to_json()})
+        return JsonResponse({"message": "get success","Message code": 200, "data": user_json})
 
 def update_user(request, user_id):
     if request.method == 'PUT':
