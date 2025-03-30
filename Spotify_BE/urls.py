@@ -17,12 +17,29 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from apps.users.views import create_user, get_user, get_users, update_user, delete_user
+from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist
+from apps.song_playlist.views import add_song_to_playlist, go_to_artist, view_credits
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # User URLs
     path('users/', get_users, name='get_users'),
     path('users/<int:user_id>/', get_user, name='get_user'),
     path('users/create/', create_user, name='create_user'),
     path('users/<int:user_id>/update/', update_user, name='update_user'),
     path('users/<int:user_id>/delete/', delete_user, name='delete_user'),
+
+    # Playlist URLs
+    path('playlists/create/', createPlaylist, name='create_playlist'),
+    path('playlists/<uuid:id>/update/', updatePlaylist, name='update_playlist'),
+    path('playlists/<uuid:id>/delete/', deletePlaylist, name='delete_playlist'),
+    path('playlists/<uuid:id>/', getPlaylist, name='get_playlist'),
+
+    # SongPlaylist URLs
+    path('song_playlist/create/', add_song_to_playlist, name='create_song_playlist'),
+    path('song_playlist/<uuid:id>/delete/', go_to_artist, name='delete_song_playlist'),
+    path('song_playlist/<uuid:id>/', view_credits, name='get_song_playlist'),
 ]
+
+

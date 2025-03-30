@@ -1,3 +1,4 @@
-from django.shortcuts import render
+from django.http import JsonResponse
+from .models import Song
 
-# Create your views here.
+# CRUD for song

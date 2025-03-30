@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.songs',
     'apps.playlists',
+    'apps.song_playlist',
     'apps.chat',
     'rest_framework',
 ]
@@ -95,13 +96,14 @@ APPEND_SLASH = False
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
+        'NAME': os.getenv('DB_NAME', 'spotify'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', '1234567890'),
+        'HOST': os.getenv('DB_HOST', 'db'),
         'PORT': '5432',
     }
 }
+
 
 AUTH_USER_MODEL = 'users.User'
 
