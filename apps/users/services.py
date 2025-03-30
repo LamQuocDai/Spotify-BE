@@ -1,12 +1,19 @@
 from .models import User
 
 def create_user_service(data):
-    user = User.objects.create(
-        username=data['username'],
-        email=data['email'],
-        password=data['password']
-    )
-    return user
+    try:
+        user = User.objects.create(
+            username=data['username'],
+            email=data['email'],
+            password=data['password'],
+            phone=data['phone'],
+            gender=data['gender'],
+            image=data['image'],
+        )
+        user.groups.add(data['group'])
+        return user
+    except Exception as e:
+        return None
 
 def get_users_service():
     return list(User.objects.all().values())
@@ -24,7 +31,11 @@ def update_user_service(user_id, data):
     try:
         user = User.objects.get(id=user_id)
         user.username = data.get('username', user.username)
-        user.email = data.get('email', user.email)
+        user.password = data.get('password', user.password)
+        user.phone = data.get('phone', user.phone)
+        user.gender = data.get('gender', user.gender)
+        user.image = data.get('image', user.image)
+
         user.save()
         return user
     except User.DoesNotExist:
