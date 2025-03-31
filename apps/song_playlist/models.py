@@ -4,7 +4,7 @@ from apps.playlists.models import Playlist
 import uuid
 
 class SongPlaylist(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4(), editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, related_name='song_playlists')
     song = models.ForeignKey(Song, on_delete=models.CASCADE, related_name='song_playlists')
 

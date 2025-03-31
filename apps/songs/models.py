@@ -3,11 +3,11 @@ from apps.users.models import User
 import uuid
 
 class Genre(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4(), editable=False)
+    id = models.UUIDField(primary_key=True, editable=False)
     name = models.CharField(max_length=100, unique=True)
 
 class Song(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4(), editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE, related_name='songs')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='uploaded_songs')
     singer_name = models.CharField(max_length=100)
