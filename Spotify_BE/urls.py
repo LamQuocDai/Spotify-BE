@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from apps.users.views import create_user, get_user, get_users, update_user, delete_user
-from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist
+from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getUserPlaylists
 from apps.song_playlist.views import add_song_to_playlist, go_to_artist, view_credits
 
 urlpatterns = [
@@ -35,6 +35,7 @@ urlpatterns = [
     path('playlists/<uuid:id>/update/', updatePlaylist, name='update_playlist'),
     path('playlists/<uuid:id>/delete/', deletePlaylist, name='delete_playlist'),
     path('playlists/<uuid:id>/', getPlaylist, name='get_playlist'),
+    path('playlists/', getUserPlaylists, name='get_playlists'),
 
     # SongPlaylist URLs
     path('song_playlist/create/', add_song_to_playlist, name='create_song_playlist'),

@@ -65,7 +65,12 @@ MIDDLEWARE = [
 INSTALLED_APPS += ['corsheaders']
 MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
 
-CORS_ALLOW_ALL_ORIGINS = True  # Hoặc CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+# CORS_ALLOW_ALL_ORIGINS = True  # Hoặc CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5173"
+]
 
 ROOT_URLCONF = 'Spotify_BE.urls'
 

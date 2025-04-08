@@ -64,3 +64,23 @@ def get_playlist(playlist, user):
         'title': playlist.title,
         'description': playlist.description
     }, status=200)
+
+def get_user_playlists(user):
+    if not user.is_authenticated:
+        return JsonResponse({
+            'message': 'User not authenticated'
+        }, status=401)
+
+    playlists = Playlist.objects.filter(user=user)
+    playlists_data = [
+        {
+            'id': str(playlist.id),
+            'title': playlist.title,
+            'description': playlist.description
+        }
+        for playlist in playlists
+    ]
+    return JsonResponse({
+        'message': 'Playlists retrieved successfully',
+        'playlists': playlists_data
+    }, status=200)
