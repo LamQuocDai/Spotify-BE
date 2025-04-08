@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from apps.users.views import create_user, get_user, get_users, update_user, delete_user
 from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getUserPlaylists
-from apps.song_playlist.views import add_song_to_playlist, go_to_artist, view_credits
+from apps.song_playlist.views import add_song_to_playlist, go_to_artist, view_credits, getSongsFromPlaylist
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -41,6 +41,7 @@ urlpatterns = [
     path('song_playlist/create/', add_song_to_playlist, name='create_song_playlist'),
     path('song_playlist/<uuid:id>/delete/', go_to_artist, name='delete_song_playlist'),
     path('song_playlist/<uuid:id>/', view_credits, name='get_song_playlist'),
+    path('song_playlist/<uuid:playlist_id>/songs/', getSongsFromPlaylist, name='get_songs_from_playlist'),
 ]
 
 

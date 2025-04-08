@@ -18,7 +18,7 @@ def create_playlist(data, user):
     )
     return playlist, JsonResponse({
         'message': 'Playlist created successfully',
-        'id': str(playlist.id),  # Chuyển UUID thành string
+        'id': str(playlist.id),
         'title': playlist.title,
         'description': playlist.description
     }, status=201)
@@ -76,7 +76,8 @@ def get_user_playlists(user):
         {
             'id': str(playlist.id),
             'title': playlist.title,
-            'description': playlist.description
+            'description': playlist.description,
+            'song_count': playlist.song_playlists.count()
         }
         for playlist in playlists
     ]
