@@ -1,4 +1,3 @@
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 import json
@@ -31,9 +30,9 @@ def get_user(request, user_id):
         try:
             user = get_user_service(user_id)
 
-            user_json = json.loads(serialize('json', [user]))[0]['fields']
             if user is None:
                 return error_response("User doesn't exist")
+            user_json = json.loads(serialize('json', [user]))[0]['fields']
             return success_response("Get user success",user_json)
         except Exception as e:
             return error_response(e.__str__())
@@ -58,8 +57,8 @@ def delete_user(request, user_id):
             user = get_user_service(user_id)
             if user is None:
                 return error_response("User doesn't exist")
-            user = delete_user_service(user_id)
-            user_json = json.loads(serialize('json', [user]))[0]['fields']
+            user_delete = delete_user_service(user_id)
+            user_json = json.loads(serialize('json', [user_delete]))[0]['fields']
             return success_response("Delete user success",user_json)
         except Exception as e:
             return error_response(e.__str__())
