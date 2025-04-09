@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'apps.playlists',
     'apps.chat',
     'rest_framework',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -123,6 +124,27 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Add Simple JWT to REST Framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+# Optional: Configure Simple JWT settings (customize as needed)
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Access token lasts for 60 minutes
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # Refresh token lasts for 1 day
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'UPDATE_LAST_LOGIN': False,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+}
 
 
 # Internationalization

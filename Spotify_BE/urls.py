@@ -17,9 +17,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from apps.users.views import create_user, get_user, get_users, update_user, delete_user
-
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # Login endpoint
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), # Refresh token endpoint
     path('users/', get_users, name='get_users'),
     path('users/<int:user_id>/', get_user, name='get_user'),
     path('users/create/', create_user, name='create_user'),

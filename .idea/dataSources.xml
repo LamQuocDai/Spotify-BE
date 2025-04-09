@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="db_spotify_clone@database-1.cz4qo0kq4fzf.ap-southeast-1.rds.amazonaws.com" uuid="94384a98-bbdd-43ff-b0ef-4d11d09e5e4d">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://database-1.cz4qo0kq4fzf.ap-southeast-1.rds.amazonaws.com:5432/db_spotify_clone</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+  </component>
+</project>
