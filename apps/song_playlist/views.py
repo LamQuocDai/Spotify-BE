@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login
-from .services import addSongToPlaylist, goToArtist, view_credits, getSongFromPlaylist
+from .services import addSongToPlaylist, goToArtist, view_credits, getSongFromPlaylist, deleteSongFromPlaylist, searchSongFromPlaylist
 from .models import Song
 import json
 
@@ -54,3 +54,23 @@ def getSongsFromPlaylist(request, playlist_id):
         response = getSongFromPlaylist(playlist_id, user_id)
         return response
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+def deleteSong_Playlist(request, playlist_id, song_id):
+    if request.method == 'DELETE':
+        user_id = request.user.id
+        response = deleteSongFromPlaylist(playlist_id, song_id, user_id)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def searchSongsFromPlaylist(request, playlist_id):
+    if request.method == 'GET':
+        user_id = request.user.id
+        query = request.GET.get('query', None)
+        response = searchSongFromPlaylist(playlist_id, user_id, query)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+

@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import Playlist
-from .services import create_playlist, update_playlist, delete_playlist, get_playlist, get_user_playlists
+from .services import create_playlist, update_playlist, delete_playlist, get_playlist, get_user_playlists, search_playlists
 import json
 
 @csrf_exempt
@@ -84,12 +84,20 @@ def getUserPlaylists(request):
 
         # remove when finishing auth func
         if user.is_anonymous:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(username='ratdeptrai', password='sieudeptrai')
             if user is not None:
                 login(request, user)
             else:
                 return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'}, status=401)
 
         response = get_user_playlists(user)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def searchPlaylists(request):
+    if request.method == 'GET':
+        query = request.GET.get('query', '')
+        response = search_playlists(request.user, query)
         return response
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)

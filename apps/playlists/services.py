@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.http import JsonResponse
 from .models import Playlist
 
@@ -72,6 +73,29 @@ def get_user_playlists(user):
         }, status=401)
 
     playlists = Playlist.objects.filter(user=user)
+    playlists_data = [
+        {
+            'id': str(playlist.id),
+            'title': playlist.title,
+            'description': playlist.description,
+            'song_count': playlist.song_playlists.count()
+        }
+        for playlist in playlists
+    ]
+    return JsonResponse({
+        'message': 'Playlists retrieved successfully',
+        'playlists': playlists_data
+    }, status=200)
+
+def search_playlists(user, query):
+    if not user.is_authenticated:
+        return JsonResponse({
+            'message': 'User not authenticated'
+        }, status=401)
+
+    playlists = Playlist.objects.filter(user=user).filter(
+        Q(title__icontains=query) | Q(description__icontains=query)
+    )
     playlists_data = [
         {
             'id': str(playlist.id),
