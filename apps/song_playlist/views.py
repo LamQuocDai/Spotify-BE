@@ -1,8 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate, login
-from .services import addSongToPlaylist, goToArtist, view_credits, getSongFromPlaylist, deleteSongFromPlaylist, searchSongFromPlaylist
-from .models import Song
+from .services import (
+    addSongToPlaylist, goToArtist, view_credits, getSongFromPlaylist,
+    deleteSongFromPlaylist, searchSongFromPlaylist
+)
 import json
 
 @csrf_exempt
@@ -12,55 +13,37 @@ def add_song_to_playlist(request):
             data = json.loads(request.body)
             playlist_id = data.get('playlist_id')
             song_id = data.get('song_id')
-
             response = addSongToPlaylist(request, playlist_id, song_id)
             return response
         except json.JSONDecodeError:
             return JsonResponse({'message': 'Invalid JSON data'}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
-def go_to_artist(request, user_id):
-    if request.method == 'GET':
+@csrf_exempt
+def add_to_liked_songs_view(request):
+    if request.method == 'POST':
         try:
-            response = goToArtist(request, user_id)
+            data = json.loads(request.body)
+            song_id = data.get('song_id')
+            response = addSongToPlaylist(request, None, song_id, is_liked_song=True)
             return response
-        except Song.user.DoesNotExist:
-            return JsonResponse({'message': 'Artist not found'}, status=404)
-    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
-
-def view_credits(request, song_id):
-    if request.method == 'GET':
-        try:
-            response = view_credits(request, song_id)
-            return response
-        except Song.DoesNotExist:
-            return JsonResponse({'message': 'Song not found'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'message': 'Invalid JSON data'}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
 @csrf_exempt
 def getSongsFromPlaylist(request, playlist_id):
     if request.method == 'GET':
         user_id = request.user.id
-
-        if user_id is None:
-            user = authenticate(username='deptrai', password='ratdeptrai')
-            if user is not None:
-                login(request, user)
-                user_id = user.id
-            else:
-                return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'},
-                                    status=401)
-
         response = getSongFromPlaylist(playlist_id, user_id)
         return response
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
-
 @csrf_exempt
-def deleteSong_Playlist(request, playlist_id, song_id):
-    if request.method == 'DELETE':
+def get_liked_songs_view(request):
+    if request.method == 'GET':
         user_id = request.user.id
-        response = deleteSongFromPlaylist(playlist_id, song_id, user_id)
+        response = getSongFromPlaylist(None, user_id, is_liked_song=True)
         return response
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
@@ -73,4 +56,39 @@ def searchSongsFromPlaylist(request, playlist_id):
         return response
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
+@csrf_exempt
+def search_liked_songs_view(request):
+    if request.method == 'GET':
+        user_id = request.user.id
+        query = request.GET.get('query', None)
+        response = searchSongFromPlaylist(None, user_id, query, is_liked_song=True)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
+@csrf_exempt
+def deleteSongFromPlaylist(request, playlist_id, song_id):
+    if request.method == 'DELETE':
+        user_id = request.user.id
+        response = deleteSongFromPlaylist(playlist_id, song_id, user_id)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def remove_from_liked_songs_view(request, song_id):
+    if request.method == 'DELETE':
+        user_id = request.user.id
+        response = deleteSongFromPlaylist(None, song_id, user_id, is_liked_song=True)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+def go_to_artist(request, user_id):
+    if request.method == 'GET':
+        response = goToArtist(request, user_id)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+def view_credits(request, song_id):
+    if request.method == 'GET':
+        response = view_credits(request, song_id)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
