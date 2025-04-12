@@ -15,5 +15,11 @@ class Playlist(models.Model):
         return self.title
 
     class Meta:
-        unique_together = ('user', 'is_likedSong_playlist') # 1 user can only have 1 liked songs playlist
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=models.Q(is_likedSong_playlist=True),
+                name='unique_liked_song_playlist_per_user'
+            )
+        ]
 

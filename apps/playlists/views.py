@@ -73,7 +73,7 @@ def getPlaylists(request):
             else:
                 return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'}, status=401)
 
-        response = getPlaylist(user)
+        response = get_user_playlists(user)
         return response
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 

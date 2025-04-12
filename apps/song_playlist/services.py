@@ -70,8 +70,8 @@ def addSongToPlaylist(request, playlist_id, song_id, is_liked_song=False):
 
 def getSongFromPlaylist(playlist_id, user_id, is_liked_song=False):
     user = get_user_or_404(user_id)
-    if not user:
-        return JsonResponse({'message': 'User not found'}, status=404)
+
+    print(user_id)
 
     playlist = get_playlist_or_create_liked_songs(user, playlist_id, is_liked_song)
     if not playlist:
