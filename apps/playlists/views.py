@@ -84,7 +84,7 @@ def getUserPlaylists(request):
 
         # remove when finishing auth func
         if user.is_anonymous:
-            user = authenticate(username='ratdeptrai', password='sieudeptrai')
+            user = authenticate(username='deptrai', password='ratdeptrai')
             if user is not None:
                 login(request, user)
             else:
@@ -98,6 +98,14 @@ def getUserPlaylists(request):
 def searchPlaylists(request):
     if request.method == 'GET':
         query = request.GET.get('query', '')
+
+        if request.user.is_anonymous:
+            user = authenticate(username='deptrai', password='ratdeptrai')
+            if user is not None:
+                login(request, user)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'}, status=401)
+
         response = search_playlists(request.user, query)
         return response
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)

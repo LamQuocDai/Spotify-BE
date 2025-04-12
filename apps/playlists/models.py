@@ -23,3 +23,7 @@ class Playlist(models.Model):
             )
         ]
 
+        permissions = [
+            ("search_playlist", "Can search playlists"),
+        ]
+
