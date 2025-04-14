@@ -29,3 +29,6 @@ redis  # Dùng Redis làm message broker
 
 # Database Migrations
 alembic  # Nếu dùng với SQLAlchemy
+
+# Dung BaseModel
+pydantic  # Nếu bạn dùng Pydantic cho validation

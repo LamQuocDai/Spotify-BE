@@ -1,10 +1,10 @@
 from django.urls import path
-from apps.chat.views import create_chat, get_chat, get_chats, update_chat, delete_chat
+from . import views
 
 urlpatterns = [
-    path('', get_chats, name='get_chats'),
-    path('<int:chat_id>/', get_chat, name='get_chat'),
-    path('create/', create_chat, name='create_chat'),
-    path('<int:chat_id>/update/', update_chat, name='update_chat'),
-    path('<int:chat_id>/delete/', delete_chat, name='delete_chat'),
+    path('', views.get_chats, name='get_chats'),
+    path('<int:chat_id>/', views.get_chat, name='get_chat'),
+    path('create/', views.create_chat, name='create_chat'),
+    path('<int:chat_id>/update/', views.update_chat, name='update_chat'),
+    path('<int:chat_id>/delete/', views.delete_chat, name='delete_chat'),
 ]
