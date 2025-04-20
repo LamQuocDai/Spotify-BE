@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from apps.users.views import create_user, get_user, get_users, update_user, delete_user
 
 urlpatterns = [
     # Admin page
@@ -25,11 +26,10 @@ urlpatterns = [
     path('users/', include('apps.users.urls')),
 
     # Song management
-    path('songs/',include('apps.songs.urls')),
-
+    path('api/', include('apps.songs.urls')),
 
     # Playlist management
-    path('playlists/',include('apps.playlists.urls')),
+    path('playlists/', include('apps.playlists.urls')),
 
     # Chat management
     path('chat/', include('apps.chat.urls')),

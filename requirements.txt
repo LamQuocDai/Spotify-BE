@@ -7,7 +7,7 @@ djangorestframework-simplejwt  # Nếu bạn sử dụng JWT authentication
 psycopg2-binary  # Cần để kết nối với PostgreSQL trên AWS RDS
 
 # AWS Deployment (Tùy chọn)
-boto3  # Nếu bạn muốn lưu file lên S3
+boto3
 django-storages  # Hỗ trợ lưu trữ tệp trên AWS S3
 
 # WebSockets (nếu cần real-time chat)
@@ -30,5 +30,6 @@ redis  # Dùng Redis làm message broker
 # Database Migrations
 alembic  # Nếu dùng với SQLAlchemy
 
+botocore~=1.37.28
 # Dung BaseModel
 pydantic  # Nếu bạn dùng Pydantic cho validation
