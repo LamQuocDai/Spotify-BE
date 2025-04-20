@@ -12,7 +12,8 @@ class SongSerializer(serializers.ModelSerializer):
     class Meta:
         model = Song
         fields = ['id', 'genre', 'genre_name', 'singer_name', 'song_name',
-                 'url_video', 'image', 'url_audio', 'user']
+                  'url_video', 'image', 'url_audio', 'user',
+                  'audio_download_url', 'video_download_url']
         read_only_fields = ['user']
 
     def get_genre_name(self, obj):

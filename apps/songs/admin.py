@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.urls import reverse
 from django.utils.html import format_html
 from .models import Song, Genre
 from .form import SongForm
@@ -11,27 +12,27 @@ class SongAdmin(admin.ModelAdmin):
 
     def audio_download_link(self, obj):
         if obj.url_audio:
-            return format_html('<a href="{}" download>Download Audio</a>', obj.url_audio)
+            url = reverse('song-download', kwargs={'pk': obj.pk, 'file_type': 'audio'})
+            return format_html('<a href="{}" download>Download Audio</a>', url)
         return "-"
 
     audio_download_link.short_description = 'Audio Download'
 
     def video_download_link(self, obj):
         if obj.url_video:
-            return format_html('<a href="{}" download>Download Video</a>', obj.url_video)
+            url = reverse('song-download', kwargs={'pk': obj.pk, 'file_type': 'video'})
+            return format_html('<a href="{}" download>Download Video</a>', url)
         return "-"
 
     video_download_link.short_description = 'Video Download'
 
     def save_model(self, request, obj, form, change):
-        # Set the user to the current admin user if creating a new song
         if not change:
             obj.user = request.user
         super().save_model(request, obj, form, change)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
-        # Pass the current user to the form for new objects
         if not obj:
             form.user = request.user
         return form

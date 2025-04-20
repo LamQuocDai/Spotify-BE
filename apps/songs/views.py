@@ -1,9 +1,13 @@
+import boto3
+from botocore.exceptions import ClientError
+from django.conf import settings
+from django.http import StreamingHttpResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from .models import Song, Genre
 from .serializers import SongSerializer, GenreSerializer
 from .form import SongForm
@@ -93,14 +97,10 @@ class SongViewSet(viewsets.ViewSet):
     def download(self, request, pk=None, file_type=None):
         song = get_object_or_404(Song, pk=pk)
 
-        # Check permissions (only the uploader or admin can download)
-        if song.user != request.user and not request.user.is_staff:
-            return Response({'error': 'You do not have permission to download this file'},
-                            status=status.HTTP_403_FORBIDDEN)
-
         # Determine which file to download
         if file_type == 'audio':
             file_url = song.url_audio
+            content_type = 'audio/mpeg'  # Adjust based on file type
             file_extension = file_url.split('.')[-1] if file_url else 'mp3'
             file_name = f"{song.singer_name}_{song.song_name}_audio.{file_extension}"
         elif file_type == 'video':
@@ -108,6 +108,7 @@ class SongViewSet(viewsets.ViewSet):
             if not file_url:
                 return Response({'error': 'No video file available for this song'},
                                 status=status.HTTP_404_NOT_FOUND)
+            content_type = 'video/mp4'  # Adjust based on file type
             file_extension = file_url.split('.')[-1] if file_url else 'mp4'
             file_name = f"{song.singer_name}_{song.song_name}_video.{file_extension}"
         else:
@@ -117,8 +118,29 @@ class SongViewSet(viewsets.ViewSet):
             return Response({'error': f'No {file_type} file available for this song'},
                             status=status.HTTP_404_NOT_FOUND)
 
-        # Redirect to the S3 URL with a proper Content-Disposition header
-        encoded_file_name = urllib.parse.quote(file_name)
-        response = redirect(file_url)
-        response['Content-Disposition'] = f'attachment; filename="{encoded_file_name}"'
-        return response
+        # Stream the file from S3
+        try:
+            s3_client = boto3.client(
+                's3',
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name=settings.AWS_S3_REGION_NAME
+            )
+            key = file_url.split('.com/')[-1]
+            response = s3_client.get_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=key)
+            file_stream = response['Body']
+
+            # Create streaming response
+            encoded_file_name = urllib.parse.quote(file_name)
+            streaming_response = StreamingHttpResponse(
+                file_stream,
+                content_type=content_type
+            )
+            streaming_response['Content-Disposition'] = f'attachment; filename="{encoded_file_name}"'
+            streaming_response['Content-Length'] = response['ContentLength']
+            return streaming_response
+
+        except ClientError as e:
+            logger.error(f"Error downloading from S3: {e}")
+            return Response({'error': f'Failed to download {file_type} file'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)

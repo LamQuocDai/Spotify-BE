@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     'apps.songs',
     'apps.playlists',
     'apps.chat',
-    'rest_framework',
 ]
 
 ASGI_APPLICATION = 'Spotify_BE.asgi.application'
