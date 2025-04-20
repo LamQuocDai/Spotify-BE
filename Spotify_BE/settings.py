@@ -34,7 +34,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    # Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,11 +47,21 @@ INSTALLED_APPS = [
     'storages',
 
     # My apps
+    'channels',
     'apps.users',
     'apps.songs',
     'apps.playlists',
     'apps.chat',
+    'rest_framework',
 ]
+
+ASGI_APPLICATION = 'Spotify_BE.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

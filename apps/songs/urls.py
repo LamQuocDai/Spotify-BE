@@ -5,7 +5,7 @@ from .views import SongViewSet, GenreViewSet
 
 router = DefaultRouter()
 router.register(r'songs', SongViewSet, basename='song')
-router.register(r'genres', GenreViewSet)
+router.register(r'genres', GenreViewSet, basename='genre')
 
 urlpatterns = [
     path('', include(router.urls)),

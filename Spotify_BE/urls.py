@@ -19,11 +19,18 @@ from django.urls import path, include
 from apps.users.views import create_user, get_user, get_users, update_user, delete_user
 
 urlpatterns = [
+    # Admin page
     path('admin/', admin.site.urls),
-    path('users/', get_users, name='get_users'),
-    path('users/<int:user_id>/', get_user, name='get_user'),
-    path('users/create/', create_user, name='create_user'),
-    path('users/<int:user_id>/update/', update_user, name='update_user'),
-    path('users/<int:user_id>/delete/', delete_user, name='delete_user'),
+
+    # User management
+    path('users/', include('apps.users.urls')),
+
+    # Song management
     path('api/', include('apps.songs.urls')),
+
+    # Playlist management
+    path('playlists/', include('apps.playlists.urls')),
+
+    # Chat management
+    path('chat/', include('apps.chat.urls')),
 ]
