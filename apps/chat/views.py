@@ -2,6 +2,10 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 import json
+from django.db.models import Q
+from .models import Chat
+from apps.users.models import User
+
 
 from rest_framework.generics import get_object_or_404
 
@@ -21,13 +25,15 @@ def create_chat(request):
             return error_response(e.__str__())
 
 
-def get_chats(request):
-    if request.method == 'GET':
-        try:
-            chats = services.get_chats_service()
-            return success_response("Get list success",chats)
-        except Exception as e:
-            return error_response(e.__str__())
+def get_chats(request, user_id):
+    try:
+        receiver = get_object_or_404(User, id=user_id)
+        chats = Chat.objects.filter(
+            Q(user1=request.user, user2=receiver) | Q(user1=receiver, user2=request.user)
+        ).order_by('created_at').values('user1__username', 'user2__username', 'message', 'created_at')
+        return success_response("Get list success",chats)
+    except Exception as e:
+        return error_response(e.__str__())
 
 def get_chat(request, chat_id):
     if request.method == 'GET':
