@@ -58,7 +58,8 @@ ASGI_APPLICATION = 'Spotify_BE.asgi.application'
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        'CONFIG': {'host': 'localhost', 'port': 6379},
     }
 }
 
