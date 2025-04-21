@@ -1,14 +1,16 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from .schemas import PrivateMessageIn
-from . import services
+from channels.db import database_sync_to_async
+from .models import Chat
+from apps.users.models import User
 
 # consumers.py
-class PrivateChatConsumer(AsyncWebsocketConsumer):
+class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.id_sender = self.scope["user"].id  # hoặc truyền qua URL/query string
         self.id_receiver = int(self.scope['url_route']['kwargs']['receiver_id'])
-        self.group_name = services.get_private_group_service(self.id_sender, self.id_receiver)
+        self.room_group_name = f'chat_{min(self.user.id, int(self.id_))}_{max(self.user.id, int(self.other_user_id))}'
 
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
