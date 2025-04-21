@@ -15,6 +15,15 @@ class Song(models.Model):
     url_video = models.URLField(max_length=1000, blank=True, null=True)
     image = models.URLField(max_length=1000, blank=True, null=True)
     url_audio = models.URLField(max_length=1000)
+    create_at = models.DateTimeField(auto_now_add=True)
+    update_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.singer_name} - {self.song_name}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['song_name']),
+            models.Index(fields=['genre']),
+            models.Index(fields=['-create_at']),
+        ]
