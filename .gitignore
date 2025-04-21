@@ -1,2 +1,67 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*~
+*.swp
+
+# Django migrations
+**/migrations/
+!**/migrations/__init__.py
+
+# SQLite database
+db.sqlite3
+db.sqlite3-journal
+
+# Media and static files (when generated in dev)
+media/
+staticfiles/
+static/
+
+# Secret settings (optional, if you keep secrets separately)
 .env
-.venv
+*.env
+
+# VS Code and other IDE/editor settings
+.vscode/
+.idea/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Python egg and distribution info
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+sdist/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# mypy, pylint, pytest, coverage, etc.
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+
+# System-specific
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+*.pid
+docker-compose.override.yml
