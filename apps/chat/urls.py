@@ -1,6 +1,9 @@
 from django.urls import path
 from . import views
 
+
+app_name = 'chat'
+
 urlpatterns = [
     path('', views.get_chats, name='get_chats'),
     path('<int:chat_id>/', views.get_chat, name='get_chat'),

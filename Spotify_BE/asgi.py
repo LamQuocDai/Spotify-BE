@@ -15,8 +15,6 @@ import apps.chat.routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Spotify_BE.settings')
 
-
-
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
