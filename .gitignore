@@ -1,18 +1,10 @@
 # Byte-compiled / optimized / DLL files
-# Python bytecode and cache
 __pycache__/
+*.py[cod]
+*$py.class
 *.pyc
-*.pyo
-*.pyd
-
-# Django-specific
-*.log
-*.pot
-*.pyc
-local_settings.py
-db.sqlite3
-media/
-staticfiles/
+*~
+*.swp
 
 # Django migrations
 **/migrations/
