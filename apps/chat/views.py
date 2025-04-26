@@ -1,74 +1,51 @@
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
-from django.core.serializers import serialize
-import json
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 from django.db.models import Q
-from .models import Chat
 from apps.users.models import User
+from .models import Chat
+from .serializers import ChatSerializer
+from rest_framework.permissions import IsAuthenticated
 
+class ConversationList(APIView):
+    permission_classes = [IsAuthenticated]
 
-from rest_framework.generics import get_object_or_404
+    def get(self, request):
+        current_user = request.user
+        user2_list = Chat.objects.filter(user1=current_user).values_list('user2', flat=True).distinct()
+        user1_list = Chat.objects.filter(user2=current_user).values_list('user1', flat=True).distinct()
+        all_users = set(user2_list) | set(user1_list)
+        all_users.discard(current_user.id)
+        conversations = User.objects.filter(id__in=all_users).values('id', username=F('username'))
+        return Response(conversations)
 
-from apps.utils.response import success_response, error_response
-from . import services
+class MessageList(APIView):
+    permission_classes = [IsAuthenticated]
 
-@csrf_exempt
-def create_chat(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            chat = services.create_chat_service(data)
-            chat_json = json.loads(serialize('json', [chat]))[0]['fields']
+    def get(self, request, other_user_id):
+        current_user = request.user
+        other_user = User.objects.get(id=other_user_id)
+        messages = Chat.objects.filter(
+            Q(user1=current_user, user2=other_user) | Q(user1=other_user, user2=current_user)
+        ).order_by('created_at')
+        serializer = ChatSerializer(messages, many=True)
+        return Response(serializer.data)
 
-            return success_response("Create chat success",chat_json)
-        except Exception as e:
-            return error_response(e.__str__())
-
-
-def get_chats(request, user_id):
-    try:
-        receiver = get_object_or_404(User, id=user_id)
-        chats = Chat.objects.filter(
-            Q(user1=request.user, user2=receiver) | Q(user1=receiver, user2=request.user)
-        ).order_by('created_at').values('user1__username', 'user2__username', 'message', 'created_at')
-        return success_response("Get list success",chats)
-    except Exception as e:
-        return error_response(e.__str__())
-
-def get_chat(request, chat_id):
-    if request.method == 'GET':
-        try:
-            chat = services.get_chat_service(chat_id)
-
-            if chat is None:
-                return error_response("Chat doesn't exist")
-            chat_json = json.loads(serialize('json', [chat]))[0]['fields']
-            return success_response("Get chat success",chat_json)
-        except Exception as e:
-            return error_response(e.__str__())
-
-@csrf_exempt
-def update_chat(request, chat_id):
-    if request.method == 'PUT':
-        try:
-            data = json.loads(request.body)
-            chat = services.update_chat_service(chat_id,data)
-            if chat is None:
-                return error_response("Chat doesn't exist")
-            chat_json = json.loads(serialize('json', [chat]))[0]['fields']
-            return success_response("Update chat success",chat_json)
-        except Exception as e:
-            return error_response(e.__str__())
-
-@csrf_exempt
-def delete_chat(request, chat_id):
-    if request.method == 'DELETE':
-        try:
-            chat = services.get_chat_service(chat_id)
-            if chat is None:
-                return error_response("Chat doesn't exist")
-            chat_delete = services.delete_chat_service(chat_id)
-            chat_json = json.loads(serialize('json', [chat_delete]))[0]['fields']
-            return success_response("Delete chat success",chat_json)
-        except Exception as e:
-            return error_response(e.__str__())
+    def post(self, request, other_user_id):
+        current_user = request.user
+        other_user = User.objects.get(id=other_user_id)
+        serializer = ChatSerializer(data=request.data)
+        if serializer.is_valid():
+            if current_user.id < other_user.id:
+                user1 = current_user
+                user2 = other_user
+            else:
+                user1 = other_user
+                user2 = current_user
+            chat = Chat.objects.create(
+                user1=user1,
+                user2=user2,
+                message=serializer.validated_data['message']
+            )
+            return Response(ChatSerializer(chat).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

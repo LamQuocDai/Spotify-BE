@@ -9,11 +9,11 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 
 import os
 from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
 from django.core.asgi import get_asgi_application
+from channels.auth import AuthMiddlewareStack
 import apps.chat.routing
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Spotify_BE.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "yourproject.settings")
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
@@ -21,5 +21,5 @@ application = ProtocolTypeRouter({
         URLRouter(
             apps.chat.routing.websocket_urlpatterns
         )
-    ),}
-)
+    ),
+})

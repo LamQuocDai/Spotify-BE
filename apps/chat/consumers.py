@@ -3,17 +3,25 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from .models import Chat
 from apps.users.models import User
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.exceptions import AuthenticationFailed
 
-# consumers.py
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.user = self.scope["user"] # hoặc truyền qua URL/query string
-        self.id_receiver = int(self.scope['url_route']['kwargs']['receiver_id'])
-        self.room_group_name = f'chat_{min(self.user.id, int(self.id_receiver))}_{max(self.user.id, int(self.id_receiver))}'
-
-        if self.user.id.is_authenticated:
-            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-            await self.accept()
+        headers = dict(self.scope['headers'])
+        auth_header = headers.get(b'authorization', b'').decode('utf-8')
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+            try:
+                validated_token = JWTAuthentication().get_validated_token(token)
+                self.user = JWTAuthentication().get_user(validated_token)
+                self.other_user_id = self.scope['url_route']['kwargs']['other_user_id']
+                self.other_user = await database_sync_to_async(User.objects.get)(id=self.other_user_id)
+                self.room_group_name = f'chat_{min(self.user.id, self.other_user.id)}_{max(self.user.id, self.other_user.id)}'
+                await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+                await self.accept()
+            except AuthenticationFailed:
+                await self.close()
         else:
             await self.close()
 
@@ -23,35 +31,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
-
-        # Save message to database
-        await self.save_message(message)
-
-        # Broadcast message to room group
+        await database_sync_to_async(Chat.objects.create)(
+            user1=self.user,
+            user2=self.other_user,
+            message=message
+        )
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
                 'message': message,
-                'username': self.user.username,
+                'sender': self.user.id,
+                'recipient': self.other_user.id
             }
         )
 
     async def chat_message(self, event):
         message = event['message']
-        username = event['username']
-
-        # Send message to WebSocket
+        sender = event['sender']
+        recipient = event['recipient']
         await self.send(text_data=json.dumps({
             'message': message,
-            'username': username,
+            'sender': sender,
+            'recipient': recipient
         }))
-
-    @database_sync_to_async
-    def save_message(self, message):
-        receiver = User.objects.get(id=self.id_receiver)
-        Chat.objects.create(
-            user1=self.user,
-            user2=receiver,
-            message=message,
-        )

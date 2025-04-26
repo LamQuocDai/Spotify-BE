@@ -16,7 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from apps.users.views import create_user, get_user, get_users, update_user, delete_user
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
 urlpatterns = [
     # Admin page
@@ -31,6 +32,11 @@ urlpatterns = [
     # Playlist management
     path('playlists/', include('apps.playlists.urls')),
 
-    # Chat management
+    # # Chat management
     path('chat/', include('apps.chat.urls')),
+
+    path('api/jwt/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/jwt/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/jwt/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('api/token/', ObtainAuthToken.as_view(), name='api_token_auth'),
 ]
