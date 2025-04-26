@@ -10,6 +10,8 @@ def create_user_service(data):
             gender=data['gender'],
             image=data['image'],
         )
+        print(f"Creating user with data: {data}")
+
         user.groups.add(data['group'])
         return user
     except Exception as e:

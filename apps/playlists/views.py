@@ -1,63 +1,111 @@
+from django.contrib.auth import authenticate, login
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.core.serializers import serialize
+from .models import Playlist
+from .services import create_playlist, update_playlist, delete_playlist, get_playlist, get_user_playlists, search_playlists
 import json
-from apps.utils.response import success_response, error_response
-from . import services
 
 @csrf_exempt
-def create_playlist(request):
+def createPlaylist(request):
     if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            playlist = services.create_playlist_service(data)
-            playlist_json = json.loads(serialize('json', [playlist]))[0]['fields']
+        data = json.loads(request.body)
+        user = request.user
 
-            return success_response("Create playlist success",playlist_json)
-        except Exception as e:
-            return error_response(e.__str__())
+        # remove when finishing auth func
+        if user.is_anonymous:
+            user = authenticate(username='deptrai', password='ratdeptrai')
 
+            if user is not None:
+                login(request, user)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'}, status=401)
 
-def get_playlists(request):
-    if request.method == 'GET':
-        try:
-            playlists = services.get_playlists_service()
-            return success_response("Get list success",playlists)
-        except Exception as e:
-            return error_response(e.__str__())
-
-def get_playlist(request, playlist_id):
-    if request.method == 'GET':
-        try:
-            playlist = services.get_playlist_service(playlist_id)
-            if playlist is None:
-                return error_response("Playlist doesn't exist")
-            playlist_json = json.loads(serialize('json', [playlist]))[0]['fields']
-            return success_response("Get playlist success",playlist_json)
-        except Exception as e:
-            return error_response(e.__str__())
+        playlist, response = create_playlist(data, user)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
 @csrf_exempt
-def update_playlist(request, playlist_id):
+def updatePlaylist(request, id):
     if request.method == 'PUT':
         try:
+            playlist = Playlist.objects.get(id=id)
             data = json.loads(request.body)
-            playlist = services.update_playlist_service(playlist_id,data)
-            if playlist is None:
-                return error_response("Playlist doesn't exist")
-            playlist_json = json.loads(serialize('json', [playlist]))[0]['fields']
-            return success_response("Update playlist success",playlist_json)
-        except Exception as e:
-            return error_response(e.__str__())
+            user = request.user
+            response = update_playlist(playlist, data, user)
+            return response
+        except Playlist.DoesNotExist:
+            return JsonResponse({'message': 'Playlist not found'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
 @csrf_exempt
-def delete_playlist(request, playlist_id):
+def deletePlaylist(request, id):
     if request.method == 'DELETE':
         try:
-            playlist = services.get_playlist_service(playlist_id)
-            if playlist is None:
-                return error_response("Playlist doesn't exist")
-            playlist_delete = services.delete_playlist_service(playlist_id)
-            playlist_json = json.loads(serialize('json', [playlist_delete]))[0]['fields']
-            return success_response("Delete playlist success",playlist_json)
-        except Exception as e:
-            return error_response(e.__str__())
+            playlist = Playlist.objects.get(id=id)
+            user = request.user
+            response = delete_playlist(playlist, user)
+            return response
+        except Playlist.DoesNotExist:
+            return JsonResponse({'message': 'Playlist not found'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+def getPlaylist(request, id):
+    if request.method == 'GET':
+        try:
+            playlist = Playlist.objects.get(id=id)
+            user = request.user
+            response = get_playlist(playlist, user)
+            return response
+        except Playlist.DoesNotExist:
+            return JsonResponse({'message': 'Playlist not found'}, status=404)
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def getPlaylists(request):
+    if request.method == 'GET':
+        user = request.user
+
+        # remove when finishing auth func
+        if user.is_anonymous:
+            user = authenticate(username='deptrai', password='ratdeptrai')
+            if user is not None:
+                login(request, user)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'}, status=401)
+
+        response = get_user_playlists(user)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def getUserPlaylists(request):
+    if request.method == 'GET':
+        user = request.user
+
+        # remove when finishing auth func
+        if user.is_anonymous:
+            user = authenticate(username='deptrai', password='ratdeptrai')
+            if user is not None:
+                login(request, user)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'}, status=401)
+
+        response = get_user_playlists(user)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def searchPlaylists(request):
+    if request.method == 'GET':
+        query = request.GET.get('query', '')
+
+        if request.user.is_anonymous:
+            user = authenticate(username='deptrai', password='ratdeptrai')
+            if user is not None:
+                login(request, user)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'}, status=401)
+
+        response = search_playlists(request.user, query)
+        return response
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)

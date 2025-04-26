@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.songs',
     'apps.playlists',
+    'apps.song_playlist',
     'apps.chat',
 ]
 
@@ -79,7 +80,12 @@ MIDDLEWARE = [
 INSTALLED_APPS += ['corsheaders']
 MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
 
-CORS_ALLOW_ALL_ORIGINS = True  # Hoặc CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+# CORS_ALLOW_ALL_ORIGINS = True  # Hoặc CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5173"
+]
 
 ROOT_URLCONF = 'Spotify_BE.urls'
 
@@ -106,6 +112,8 @@ WSGI_APPLICATION = 'Spotify_BE.wsgi.application'
 
 APPEND_SLASH = False
 
+AUTH_USER_MODEL = 'users.User'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -116,9 +124,6 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-
-AUTH_USER_MODEL = 'users.User'
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
