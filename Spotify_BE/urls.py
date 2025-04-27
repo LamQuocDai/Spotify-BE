@@ -19,13 +19,13 @@ from django.urls import path, include
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 from django.urls import path
-from apps.users.views import create_user, get_user, get_users, update_user, delete_user
+# from apps.users.views import create_user, get_user, get_users, update_user, delete_user
 from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getPlaylists, searchPlaylists
 from apps.song_playlist.views import (
     add_song_to_playlist, go_to_artist, view_credits, getSongsFromPlaylist,
     deleteSongFromPlaylist, searchSongsFromPlaylist, add_to_liked_songs_view,
     get_liked_songs_view, remove_from_liked_songs_view, search_liked_songs_view
-)
+ )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -48,13 +48,13 @@ urlpatterns = [
     path('api/token/', ObtainAuthToken.as_view(), name='api_token_auth'),
 
     # User URLs
-    path('users/', get_users, name='get_users'),
-    path('users/<int:user_id>/', get_user, name='get_user'),
-    path('users/create/', create_user, name='create_user'),
-    path('users/<int:user_id>/update/', update_user, name='update_user'),
-    path('users/<int:user_id>/delete/', delete_user, name='delete_user'),
+    # path('users/', get_users, name='get_users'),
+    # path('users/<int:user_id>/', get_user, name='get_user'),
+    # path('users/create/', create_user, name='create_user'),
+    # path('users/<int:user_id>/update/', update_user, name='update_user'),
+    # path('users/<int:user_id>/delete/', delete_user, name='delete_user'),
 
-    # Playlist URLs
+    #Playlist URLs
     path('playlists/', getPlaylists, name='get_playlists'),
     path('playlists/create/', createPlaylist, name='create_playlist'),
     path('playlists/<uuid:id>/update/', updatePlaylist, name='update_playlist'),
