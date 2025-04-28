@@ -50,13 +50,17 @@ class SongForm(forms.ModelForm):
 
         # Delete old files if they exist and new files are uploaded
         if self.instance.pk:  # Existing instance
-            old_song = Song.objects.get(pk=self.instance.pk)
-            if self.cleaned_data.get('audio_file') and old_song.url_audio:
-                s3_uploader.delete_file(old_song.url_audio)
-            if self.cleaned_data.get('image_file') and old_song.image:
-                s3_uploader.delete_file(old_song.image)
-            if self.cleaned_data.get('video_file') and old_song.url_video:
-                s3_uploader.delete_file(old_song.url_video)
+            try:
+                old_song = Song.objects.get(pk=self.instance.pk)
+                if self.cleaned_data.get('audio_file') and old_song.url_audio:
+                    s3_uploader.delete_file(old_song.url_audio)
+                if self.cleaned_data.get('image_file') and old_song.image:
+                    s3_uploader.delete_file(old_song.image)
+                if self.cleaned_data.get('video_file') and old_song.url_video:
+                    s3_uploader.delete_file(old_song.url_video)
+            except Song.DoesNotExist:
+                # This is a new song, no need to delete old files
+                pass
 
         # Handle audio file
         audio_file = self.cleaned_data.get('audio_file')
