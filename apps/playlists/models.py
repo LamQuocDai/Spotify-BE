@@ -1,19 +1,29 @@
 from django.db import models
 from apps.users.models import User
 from apps.songs.models import Song
+import uuid
 
 class Playlist(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=100)
-    description = models.TextField(max_length=1000, blank=True, null=True)
+    description = models.CharField(max_length=1000)
     create_date = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_playlist', null=False)
+    is_likedSong_playlist = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title
 
-class SongPlaylist(models.Model):
-    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, related_name='playlist_songs')
-    song = models.ForeignKey(Song, on_delete=models.CASCADE, related_name='song_playlists')
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=models.Q(is_likedSong_playlist=True),
+                name='unique_liked_song_playlist_per_user'
+            )
+        ]
 
-class PlaylistUser(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_playlists')
-    playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE, related_name='playlist_users')
+        permissions = [
+            ("search_playlist", "Can search playlists"),
+        ]
+
