@@ -13,6 +13,7 @@ django-storages  # Hỗ trợ lưu trữ tệp trên AWS S3
 # WebSockets (nếu cần real-time chat)
 channels
 channels-redis  # Nếu dùng Redis làm message broker
+daphne
 
 # Env Management
 python-dotenv  # Đọc file .env để lưu các biến môi trường
@@ -33,3 +34,4 @@ alembic  # Nếu dùng với SQLAlchemy
 botocore~=1.37.28
 # Dung BaseModel
 pydantic  # Nếu bạn dùng Pydantic cho validation
+pillow

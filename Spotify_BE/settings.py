@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u1ytp%dj6^6i(&xf#q_5=l&0y(@(d9+7t_iux3__io1yc8z%4b'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -56,12 +56,13 @@ INSTALLED_APPS = [
     'apps.chat',
 ]
 
-ASGI_APPLICATION = 'Spotify_BE.asgi.application'
+
 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {'host': [("127.0.0.1", 6379)]},
+        'CONFIG': {'hosts':[ os.getenv('RD_URL')]},
+
     }
 }
 
@@ -105,6 +106,7 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'Spotify_BE.asgi.application'
 WSGI_APPLICATION = 'Spotify_BE.wsgi.application'
 
 # Database
@@ -187,4 +189,20 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # 24 giờ
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'BLACKLIST_AFTER_ROTATION': True,
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
 }

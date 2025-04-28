@@ -16,7 +16,7 @@ class ConversationList(APIView):
         user1_list = Chat.objects.filter(user2=current_user).values_list('user1', flat=True).distinct()
         all_users = set(user2_list) | set(user1_list)
         all_users.discard(current_user.id)
-        conversations = User.objects.filter(id__in=all_users).values('id', username=F('username'))
+        conversations = User.objects.filter(id__in=all_users).values('id', 'username')
         return Response(conversations)
 
 class MessageList(APIView):
