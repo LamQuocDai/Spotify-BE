@@ -87,7 +87,7 @@ def getSongFromPlaylist(playlist_id, user_id, is_liked_song=False):
             'song_name': song_playlist.song.song_name,
             'singer_name': song_playlist.song.singer_name,
             'genre': song_playlist.song.genre.name if song_playlist.song.genre else None,
-            'url': song_playlist.song.url,
+            'url': song_playlist.song.url_video,
             'image': song_playlist.song.image
         }
         for song_playlist in song_playlists
@@ -150,7 +150,7 @@ def searchSongFromPlaylist(playlist_id, user_id, query=None, is_liked_song=False
             'song_name': song_playlist.song.song_name,
             'singer_name': song_playlist.song.singer_name,
             'genre': song_playlist.song.genre.name if song_playlist.song.genre else None,
-            'url': song_playlist.song.url,
+            'url': song_playlist.song.url_video,
             'image': song_playlist.song.image
         }
         for song_playlist in song_playlists
@@ -174,7 +174,7 @@ def view_credits(request, song_id):
         'song_name': song.song_name,
         'singer_name': song.singer_name,
         'genre': song.genre.name if song.genre else None,
-        'url': song.url,
+        'url': song.url_video,
         'image': song.image,
     }
     return render(request, 'credits-detail.html', {'song': song, 'credits': credits})

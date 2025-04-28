@@ -38,7 +38,7 @@ def getSongsFromPlaylist(request, playlist_id):
         user_id = request.user.id
         # remove when login function is finished
         if user_id is None:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(username='admin', password='123456')
 
             if user is not None:
                 login(request, user)
@@ -56,7 +56,7 @@ def get_liked_songs_view(request):
         user_id = request.user.id
         # remove when login function is finished
         if user_id is None:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(username='admin', password='123456')
 
             if user is not None:
                 login(request, user)
@@ -75,7 +75,7 @@ def searchSongsFromPlaylist(request, playlist_id):
         user_id = request.user.id
         # remove when login function is finished
         if user_id is None:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(username='admin', password='123456')
 
             if user is not None:
                 login(request, user)
@@ -96,7 +96,7 @@ def search_liked_songs_view(request):
 
         # remove when login function is finished
         if user_id is None:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(username='admin', password='123456')
 
             if user is not None:
                 login(request, user)
@@ -118,7 +118,7 @@ def deleteSongFromPlaylist(request, playlist_id, song_id):
 
         # remove when login function is finished
         if user_id is None:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(username='admin', password='123456')
 
             if user is not None:
                 login(request, user)
@@ -139,7 +139,7 @@ def remove_from_liked_songs_view(request, song_id):
 
         # remove when login function is finished
         if user_id is None:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(username='admin', password='123456')
 
             if user is not None:
                 login(request, user)
@@ -157,7 +157,7 @@ def go_to_artist(request, user_id):
     if request.method == 'GET':
         # remove when login function is finished
         if user_id is None:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(username='admin', password='123456')
 
             if user is not None:
                 login(request, user)
