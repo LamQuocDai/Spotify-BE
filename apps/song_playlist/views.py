@@ -14,7 +14,19 @@ def add_song_to_playlist(request):
             data = json.loads(request.body)
             playlist_id = data.get('playlist_id')
             song_id = data.get('song_id')
-            response = addSongToPlaylist(request, playlist_id, song_id)
+
+            user = request.user
+            # remove when finishing auth func
+            if user.is_anonymous:
+                user = authenticate(username='admin', password='123456')
+
+                if user is not None:
+                    login(request, user)
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'},
+                                        status=401)
+
+            response = addSongToPlaylist(request, playlist_id, song_id, user.id)
             return response
         except json.JSONDecodeError:
             return JsonResponse({'message': 'Invalid JSON data'}, status=400)
