@@ -112,7 +112,7 @@ def search_liked_songs_view(request):
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)
 
 @csrf_exempt
-def deleteSongFromPlaylist(request, playlist_id, song_id):
+def delete_song_from_playlist_view(request, playlist_id, song_id):
     if request.method == 'DELETE':
         user_id = request.user.id
 

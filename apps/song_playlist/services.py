@@ -117,6 +117,7 @@ def deleteSongFromPlaylist(playlist_id, song_id, user_id, is_liked_song=False):
 
     try:
         song_playlist = SongPlaylist.objects.get(playlist=playlist, song=song)
+        print(song_playlist)
         song_playlist.delete()
         return JsonResponse({
             'message': f'Song {song.song_name} removed from {playlist.title}'

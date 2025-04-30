@@ -23,7 +23,7 @@ from django.urls import path
 from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getPlaylists, searchPlaylists
 from apps.song_playlist.views import (
     add_song_to_playlist, go_to_artist, view_credits, getSongsFromPlaylist,
-    deleteSongFromPlaylist, searchSongsFromPlaylist, add_to_liked_songs_view,
+    delete_song_from_playlist_view, searchSongsFromPlaylist, add_to_liked_songs_view,
     get_liked_songs_view, remove_from_liked_songs_view, search_liked_songs_view
  )
 
@@ -66,7 +66,7 @@ urlpatterns = [
     path('song_playlist/create/', add_song_to_playlist, name='create_song_playlist'),
     path('song_playlist/<uuid:playlist_id>/songs/', getSongsFromPlaylist, name='get_songs_from_playlist'),
     path('song_playlist/<uuid:playlist_id>/songs/search/', searchSongsFromPlaylist, name='search_songs_from_playlist'),
-    path('song_playlist/<uuid:playlist_id>/songs/<uuid:song_id>/delete/', deleteSongFromPlaylist, name='delete_song_from_playlist'),
+    path('song_playlist/<uuid:playlist_id>/songs/<uuid:song_id>/delete/', delete_song_from_playlist_view, name='delete_song_from_playlist'),
     path('song_playlist/<uuid:id>/delete/', go_to_artist, name='delete_song_playlist'),
     path('song_playlist/<uuid:id>/', view_credits, name='get_song_playlist'),
     path('song_playlist/liked_songs/add/', add_to_liked_songs_view, name='add_to_liked_songs'),
