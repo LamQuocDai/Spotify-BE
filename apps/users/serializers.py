@@ -43,3 +43,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['groups'] = list(user.groups.values_list('name', flat=True))
 
         return token
+
+class UserSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = User
+            fields = ('id', 'username', 'email', 'first_name', 'last_name', 'phone', 'gender', 'image', 'status')
+
+class LoginSerializer(serializers.Serializer):
+        username = serializers.CharField(required=True)
+        password = serializers.CharField(required=True, write_only=True)
