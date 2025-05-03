@@ -1,8 +1,18 @@
+# services.py
 from django.db.models import Q
 from django.http import JsonResponse
 from .models import Playlist
+import re
 
 
+# ------------------------ HELPER FUNCTION --------------------------
+def validate_base64_image(base64_string):
+    if not base64_string:
+        return True
+    pattern = r'^data:image/(png|jpeg|jpg);base64,'
+    return bool(re.match(pattern, base64_string))
+
+# ------------------------ SERVICE --------------------------
 def create_playlist(data, user):
     title = data.get('title')
     description = data.get('description')
@@ -15,13 +25,15 @@ def create_playlist(data, user):
     playlist = Playlist.objects.create(
         title=title,
         description=description,
+        image=None,
         user=user
     )
     return playlist, JsonResponse({
         'message': 'Playlist created successfully',
         'id': str(playlist.id),
         'title': playlist.title,
-        'description': playlist.description
+        'description': playlist.description,
+        'image': playlist.image
     }, status=201)
 
 
@@ -31,14 +43,25 @@ def update_playlist(playlist, data, user):
             'message': 'You do not have permission to edit this playlist'
         }, status=403)
 
-    playlist.title = data.get('title', playlist.title)
-    playlist.description = data.get('description', playlist.description)
+    title = data.get('title', playlist.title)
+    description = data.get('description', playlist.description)
+    image = data.get('image', playlist.image)
+
+    if image and not validate_base64_image(image):
+        return JsonResponse({
+            'status': 'error', 'message': 'Invalid base64 image format'
+        }, status=400)
+
+    playlist.title = title
+    playlist.description = description
+    playlist.image = image
     playlist.save()
     return JsonResponse({
         'message': 'Playlist updated successfully',
         'id': str(playlist.id),
         'title': playlist.title,
-        'description': playlist.description
+        'description': playlist.description,
+        'image': playlist.image
     }, status=200)
 
 
@@ -63,8 +86,11 @@ def get_playlist(playlist, user):
     return JsonResponse({
         'id': str(playlist.id),
         'title': playlist.title,
-        'description': playlist.description
+        'description': playlist.description,
+        'image': playlist.image,
+        'is_liked_song': playlist.is_likedSong_playlist
     }, status=200)
+
 
 def get_user_playlists(user):
     if not user.is_authenticated:
@@ -78,7 +104,9 @@ def get_user_playlists(user):
             'id': str(playlist.id),
             'title': playlist.title,
             'description': playlist.description,
-            'song_count': playlist.song_playlists.count()
+            'image': playlist.image,
+            'song_count': playlist.song_playlists.count(),
+            'is_liked_song': playlist.is_likedSong_playlist
         }
         for playlist in playlists
     ]
@@ -86,6 +114,7 @@ def get_user_playlists(user):
         'message': 'Playlists retrieved successfully',
         'playlists': playlists_data
     }, status=200)
+
 
 def search_playlists(user, query):
     if not user.is_authenticated:
@@ -101,6 +130,7 @@ def search_playlists(user, query):
             'id': str(playlist.id),
             'title': playlist.title,
             'description': playlist.description,
+            'image': playlist.image,
             'song_count': playlist.song_playlists.count()
         }
         for playlist in playlists
