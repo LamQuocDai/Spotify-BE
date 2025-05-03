@@ -39,8 +39,7 @@ def check_playlist_permission(playlist, user):
     return True
 
 # -------------------------------PLAYLIST------------------------------------
-def addSongToPlaylist(request, playlist_id, song_id, is_liked_song=False):
-    user_id = request.user.id
+def addSongToPlaylist(request, playlist_id, song_id, user_id, is_liked_song=False):
     user = get_user_or_404(user_id)
     if not user:
         return JsonResponse({'message': 'User not found'}, status=404)
@@ -87,7 +86,8 @@ def getSongFromPlaylist(playlist_id, user_id, is_liked_song=False):
             'song_name': song_playlist.song.song_name,
             'singer_name': song_playlist.song.singer_name,
             'genre': song_playlist.song.genre.name if song_playlist.song.genre else None,
-            'url': song_playlist.song.url,
+            'url_video': song_playlist.song.url_video,
+            'url_audio': song_playlist.song.url_audio,
             'image': song_playlist.song.image
         }
         for song_playlist in song_playlists
@@ -117,6 +117,7 @@ def deleteSongFromPlaylist(playlist_id, song_id, user_id, is_liked_song=False):
 
     try:
         song_playlist = SongPlaylist.objects.get(playlist=playlist, song=song)
+        print(song_playlist)
         song_playlist.delete()
         return JsonResponse({
             'message': f'Song {song.song_name} removed from {playlist.title}'
@@ -150,7 +151,7 @@ def searchSongFromPlaylist(playlist_id, user_id, query=None, is_liked_song=False
             'song_name': song_playlist.song.song_name,
             'singer_name': song_playlist.song.singer_name,
             'genre': song_playlist.song.genre.name if song_playlist.song.genre else None,
-            'url': song_playlist.song.url,
+            'url': song_playlist.song.url_video,
             'image': song_playlist.song.image
         }
         for song_playlist in song_playlists
@@ -174,7 +175,7 @@ def view_credits(request, song_id):
         'song_name': song.song_name,
         'singer_name': song.singer_name,
         'genre': song.genre.name if song.genre else None,
-        'url': song.url,
+        'url': song.url_video,
         'image': song.image,
     }
     return render(request, 'credits-detail.html', {'song': song, 'credits': credits})
