@@ -29,7 +29,6 @@ from apps.song_playlist.views import (
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
     # User management
     path('users/', include('apps.users.urls')),
 

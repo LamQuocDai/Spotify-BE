@@ -34,3 +34,6 @@ botocore~=1.37.28
 # Dung BaseModel
 pydantic  # Nếu bạn dùng Pydantic cho validation
 pillow
+
+social-auth-app-django
+django-cors-headers
