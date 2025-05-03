@@ -29,3 +29,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+class UserSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = User
+            fields = ('id', 'username', 'email', 'first_name', 'last_name', 'phone', 'gender', 'image', 'status')
+
+class LoginSerializer(serializers.Serializer):
+        username = serializers.CharField(required=True)
+        password = serializers.CharField(required=True, write_only=True)
