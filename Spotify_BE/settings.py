@@ -51,7 +51,7 @@ ASGI_APPLICATION = 'Spotify_BE.asgi.application'
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {'host': [("127.0.0.1", 6379)]},
+        'CONFIG': {'hosts':[ os.getenv('RD_URL')]},
     }
 }
 

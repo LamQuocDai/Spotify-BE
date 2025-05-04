@@ -37,3 +37,5 @@ pillow
 
 social-auth-app-django
 django-cors-headers
+
+daphne
