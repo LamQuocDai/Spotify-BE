@@ -4,13 +4,23 @@ from django.http import JsonResponse
 from .models import Playlist
 import re
 
-
 # ------------------------ HELPER FUNCTION --------------------------
 def validate_base64_image(base64_string):
     if not base64_string:
         return True
     pattern = r'^data:image/(png|jpeg|jpg);base64,'
     return bool(re.match(pattern, base64_string))
+
+def get_user_data(user):
+    return {
+        'id': str(user.id),
+        'username': user.username,
+        'email': user.email,
+        'phone': user.phone,
+        'gender': user.gender,
+        'image': user.image,
+        'status': user.status,
+    }
 
 # ------------------------ SERVICE --------------------------
 def create_playlist(data, user):
@@ -33,9 +43,9 @@ def create_playlist(data, user):
         'id': str(playlist.id),
         'title': playlist.title,
         'description': playlist.description,
-        'image': playlist.image
+        'image': playlist.image,
+        'user': get_user_data(playlist.user)
     }, status=201)
-
 
 def update_playlist(playlist, data, user):
     if playlist.user != user:
@@ -61,9 +71,9 @@ def update_playlist(playlist, data, user):
         'id': str(playlist.id),
         'title': playlist.title,
         'description': playlist.description,
-        'image': playlist.image
+        'image': playlist.image,
+        'user': get_user_data(playlist.user)
     }, status=200)
-
 
 def delete_playlist(playlist, user):
     if playlist.user != user:
@@ -76,7 +86,6 @@ def delete_playlist(playlist, user):
         'message': 'Playlist deleted successfully'
     }, status=200)
 
-
 def get_playlist(playlist, user):
     if playlist.user != user:
         return JsonResponse({
@@ -88,17 +97,19 @@ def get_playlist(playlist, user):
         'title': playlist.title,
         'description': playlist.description,
         'image': playlist.image,
-        'is_liked_song': playlist.is_likedSong_playlist
+        'is_liked_song': playlist.is_likedSong_playlist,
+        'user': get_user_data(playlist.user)
     }, status=200)
 
-
-def get_user_playlists(user):
+def get_user_playlists(user, page=1, size=10):
     if not user.is_authenticated:
         return JsonResponse({
             'message': 'User not authenticated'
         }, status=401)
 
     playlists = Playlist.objects.filter(user=user)
+    total = playlists.count()
+    playlists = playlists[(page - 1) * size:page * size]
     playlists_data = [
         {
             'id': str(playlist.id),
@@ -106,17 +117,18 @@ def get_user_playlists(user):
             'description': playlist.description,
             'image': playlist.image,
             'song_count': playlist.song_playlists.count(),
-            'is_liked_song': playlist.is_likedSong_playlist
+            'is_liked_song': playlist.is_likedSong_playlist,
+            'user': get_user_data(playlist.user)
         }
         for playlist in playlists
     ]
     return JsonResponse({
         'message': 'Playlists retrieved successfully',
-        'playlists': playlists_data
+        'playlists': playlists_data,
+        'count': total
     }, status=200)
 
-
-def search_playlists(user, query):
+def search_playlists(user, query, page=1, size=10):
     if not user.is_authenticated:
         return JsonResponse({
             'message': 'User not authenticated'
@@ -125,17 +137,21 @@ def search_playlists(user, query):
     playlists = Playlist.objects.filter(user=user).filter(
         Q(title__icontains=query) | Q(description__icontains=query)
     )
+    total = playlists.count()
+    playlists = playlists[(page - 1) * size:page * size]
     playlists_data = [
         {
             'id': str(playlist.id),
             'title': playlist.title,
             'description': playlist.description,
             'image': playlist.image,
-            'song_count': playlist.song_playlists.count()
+            'song_count': playlist.song_playlists.count(),
+            'user': get_user_data(playlist.user)
         }
         for playlist in playlists
     ]
     return JsonResponse({
         'message': 'Playlists retrieved successfully',
-        'playlists': playlists_data
+        'playlists': playlists_data,
+        'count': total
     }, status=200)
