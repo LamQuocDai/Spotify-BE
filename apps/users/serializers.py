@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import User
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -31,19 +30,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-
-        # Add custom claims
-        token['user_id'] = str(user.id)
-        # Get user groups (roles)
-        token['groups'] = list(user.groups.values_list('name', flat=True))
-
-        return token
-
 class UserSerializer(serializers.ModelSerializer):
         class Meta:
             model = User
@@ -52,3 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
         username = serializers.CharField(required=True)
         password = serializers.CharField(required=True, write_only=True)
+
+class SocialLoginSerializer(serializers.Serializer):
+    code = serializers.CharField(required=True)
+    provider = serializers.CharField(required=True)

@@ -13,7 +13,7 @@ def createPlaylist(request):
 
         # remove when finishing auth func
         if user.is_anonymous:
-            user = authenticate(username='admin', password='123456')
+            user = authenticate(request.user)
 
             if user is not None:
                 login(request, user)
@@ -31,16 +31,6 @@ def updatePlaylist(request, id):
             playlist = Playlist.objects.get(id=id)
             data = json.loads(request.body)
             user = request.user
-
-            if user.is_anonymous:
-                user = authenticate(username='admin', password='123456')
-
-                if user is not None:
-                    login(request, user)
-                else:
-                    return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'},
-                                        status=401)
-
             response = update_playlist(playlist, data, user)
             return response
         except Playlist.DoesNotExist:
@@ -53,15 +43,6 @@ def deletePlaylist(request, id):
         try:
             playlist = Playlist.objects.get(id=id)
             user = request.user
-
-            if user.is_anonymous:
-                user = authenticate(username='admin', password='123456')
-
-                if user is not None:
-                    login(request, user)
-                else:
-                    return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'},
-                                        status=401)
             response = delete_playlist(playlist, user)
             return response
         except Playlist.DoesNotExist:
@@ -73,15 +54,6 @@ def getPlaylist(request, id):
         try:
             playlist = Playlist.objects.get(id=id)
             user = request.user
-
-            if user.is_anonymous:
-                user = authenticate(username='admin', password='123456')
-
-                if user is not None:
-                    login(request, user)
-                else:
-                    return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'},
-                                        status=401)
             response = get_playlist(playlist, user)
             return response
         except Playlist.DoesNotExist:
@@ -95,7 +67,7 @@ def getPlaylists(request):
 
         # remove when finishing auth func
         if user.is_anonymous:
-            user = authenticate(username='admin', password='123456')
+            user = authenticate(request.user)
             if user is not None:
                 login(request, user)
             else:
@@ -112,7 +84,7 @@ def getUserPlaylists(request):
 
         # remove when finishing auth func
         if user.is_anonymous:
-            user = authenticate(username='admin', password='123456')
+            user = authenticate(request.user)
             if user is not None:
                 login(request, user)
             else:
@@ -125,19 +97,15 @@ def getUserPlaylists(request):
 @csrf_exempt
 def searchPlaylists(request):
     if request.method == 'GET':
-        query = request.GET.get('q', '')  # Sửa 'query' thành 'q' để khớp với frontend
-        page = int(request.GET.get('page', 1))
-        size = int(request.GET.get('page_size', 10))
-        user = request.user
+        query = request.GET.get('query', '')
 
-        if user.is_anonymous:
-            user = authenticate(username='admin', password='123456')
+        if request.user.is_anonymous:
+            user = authenticate(request.user)
             if user is not None:
                 login(request, user)
             else:
-                return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'},
-                                    status=401)
+                return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'}, status=401)
 
-        response = search_playlists(user, query, page, size)
+        response = search_playlists(request.user, query)
         return response
     return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)

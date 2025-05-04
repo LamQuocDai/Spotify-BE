@@ -26,7 +26,7 @@ from apps.users.views import create_user, get_user, get_users, update_user, dele
 from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getPlaylists, searchPlaylists
 from apps.song_playlist.views import (
     add_song_to_playlist, go_to_artist, view_credits, getSongsFromPlaylist,
-    delete_song_from_playlist_view, searchSongsFromPlaylist, add_to_liked_songs_view,
+    deleteSongFromPlaylist, searchSongsFromPlaylist, add_to_liked_songs_view,
     get_liked_songs_view, remove_from_liked_songs_view, search_liked_songs_view
  )
 
@@ -34,7 +34,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # User management
-    path('api/users/', include('apps.users.urls')),
+    path('users/', include('apps.users.urls')),
 
     # Song management
     path('api/', include('apps.songs.urls')),
@@ -52,7 +52,7 @@ urlpatterns = [
 
     # User URLs
     path('users/', get_users, name='get_users'),
-    path('users/<str:user_id>/', get_user, name='get_user'),
+    path('users/<int:user_id>/', get_user, name='get_user'),
     path('users/create/', create_user, name='create_user'),
     path('users/<int:user_id>/update/', update_user, name='update_user'),
     path('users/<int:user_id>/delete/', delete_user, name='delete_user'),
