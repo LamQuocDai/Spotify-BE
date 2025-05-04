@@ -73,7 +73,7 @@ def add_to_liked_songs_view(request):
             song_id = data.get('song_id')
 
             # Thêm bài hát vào danh sách yêu thích
-            response = addSongToPlaylist(request, None, song_id, is_liked_song=True)
+            response = addSongToPlaylist(request, None, song_id, user.id, is_liked_song=True)
             return response
 
         except json.JSONDecodeError:

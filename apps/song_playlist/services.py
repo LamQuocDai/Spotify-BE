@@ -22,12 +22,12 @@ def get_playlist_or_create_liked_songs(user, playlist_id=None, is_liked_song=Fal
     try:
         if is_liked_song:
             try:
-                return Playlist.objects.get(user=user, is_liked_songs=True)
+                return Playlist.objects.get(user=user, is_likedSong_playlist=True)
             except Playlist.DoesNotExist:
                 return Playlist.objects.create(
                     user=user,
                     title="Liked Songs",
-                    is_liked_songs=True
+                    is_likedSong_playlist=True
                 )
         return Playlist.objects.get(id=playlist_id)
     except Playlist.DoesNotExist:

@@ -36,6 +36,9 @@ urlpatterns = [
     # User management
     path('users/', include('apps.users.urls')),
 
+    # Playlist management
+    path('playlists/', include('apps.playlists.urls')),
+
     # Song management
     path('api/', include('apps.songs.urls')),
 

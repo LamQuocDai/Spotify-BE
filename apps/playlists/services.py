@@ -1,7 +1,14 @@
 from django.db.models import Q
 from django.http import JsonResponse
 from .models import Playlist
+import re
 
+# ------------------------ HELPER FUNCTION --------------------------
+def validate_base64_image(base64_string):
+     if not base64_string:
+         return True
+     pattern = r'^data:image/(png|jpeg|jpg);base64,'
+     return bool(re.match(pattern, base64_string))
 
 def create_playlist(data, user):
     title = data.get('title')
@@ -15,13 +22,15 @@ def create_playlist(data, user):
     playlist = Playlist.objects.create(
         title=title,
         description=description,
+        image=None,
         user=user
     )
     return playlist, JsonResponse({
         'message': 'Playlist created successfully',
         'id': str(playlist.id),
         'title': playlist.title,
-        'description': playlist.description
+        'description': playlist.description,
+        'image': playlist.image
     }, status=201)
 
 
@@ -38,7 +47,8 @@ def update_playlist(playlist, data, user):
         'message': 'Playlist updated successfully',
         'id': str(playlist.id),
         'title': playlist.title,
-        'description': playlist.description
+        'description': playlist.description,
+        'image': playlist.image
     }, status=200)
 
 
@@ -63,7 +73,8 @@ def get_playlist(playlist, user):
     return JsonResponse({
         'id': str(playlist.id),
         'title': playlist.title,
-        'description': playlist.description
+        'description': playlist.description,
+        'image': playlist.image
     }, status=200)
 
 def get_user_playlists(user):
@@ -78,7 +89,8 @@ def get_user_playlists(user):
             'id': str(playlist.id),
             'title': playlist.title,
             'description': playlist.description,
-            'song_count': playlist.song_playlists.count()
+            'song_count': playlist.song_playlists.count(),
+            'image': playlist.image
         }
         for playlist in playlists
     ]
@@ -101,7 +113,8 @@ def search_playlists(user, query):
             'id': str(playlist.id),
             'title': playlist.title,
             'description': playlist.description,
-            'song_count': playlist.song_playlists.count()
+            'song_count': playlist.song_playlists.count(),
+            'image': playlist.image
         }
         for playlist in playlists
     ]
