@@ -15,6 +15,8 @@ FRONTEND_URL = 'http://localhost:5173'
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-u1ytp%dj6^6i(&xf#q_5=l&0y(@(d9+7t_iux3__io1yc8z%4b')
 
+SECRET_KEY_JWT = os.getenv('SECRET_KEY_JWT')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -146,6 +148,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication'
+        # 'apps.users.authentication.CustomJWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -156,6 +159,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'BLACKLIST_AFTER_ROTATION': True,
+    'SIGNING_KEY': SECRET_KEY_JWT,
 }
 
 AUTHENTICATION_BACKENDS = (
