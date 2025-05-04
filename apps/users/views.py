@@ -1,3 +1,4 @@
+# views.py
 import requests
 import uuid
 from django.db import transaction
@@ -25,7 +26,7 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        refresh = RefreshToken.for_user(user)
+        refresh = RefreshToken.for_user(user)  # Token sẽ được ký bằng SECRET_KEY_JWT
 
         return Response({
             'user': UserSerializer(user).data,
@@ -49,7 +50,7 @@ class LoginView(generics.GenericAPIView):
         if user is None:
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        refresh = RefreshToken.for_user(user)
+        refresh = RefreshToken.for_user(user)  # Token sẽ được ký bằng SECRET_KEY_JWT
 
         return Response({
             'user': UserSerializer(user).data,
@@ -182,7 +183,7 @@ class SocialLoginView(generics.GenericAPIView):
                            "created" if social_created else "updated", user.username, provider_id)
 
                 # Generate tokens with custom payload
-                refresh = RefreshToken.for_user(user)
+                refresh = RefreshToken.for_user(user)  # Token sẽ được ký bằng SECRET_KEY_JWT
                 refresh['first_name'] = user.first_name
                 refresh['username'] = user.username
                 refresh['email'] = user.email
