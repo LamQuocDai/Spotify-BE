@@ -10,6 +10,19 @@ def validate_base64_image(base64_string):
      pattern = r'^data:image/(png|jpeg|jpg);base64,'
      return bool(re.match(pattern, base64_string))
 
+
+def get_user_data(user):
+    return {
+        'id': str(user.id),
+        'username': user.username,
+        'email': user.email,
+        'phone': user.phone,
+        'gender': user.gender,
+        'image': user.image,
+        'status': user.status,
+    }
+
+# -----------------------------HANDLE ---------------------------------
 def create_playlist(data, user):
     title = data.get('title')
     description = data.get('description')
@@ -30,7 +43,8 @@ def create_playlist(data, user):
         'id': str(playlist.id),
         'title': playlist.title,
         'description': playlist.description,
-        'image': playlist.image
+        'image': playlist.image,
+        'user': get_user_data(playlist.user)
     }, status=201)
 
 
@@ -48,7 +62,8 @@ def update_playlist(playlist, data, user):
         'id': str(playlist.id),
         'title': playlist.title,
         'description': playlist.description,
-        'image': playlist.image
+        'image': playlist.image,
+        'user': get_user_data(playlist.user)
     }, status=200)
 
 
@@ -74,7 +89,8 @@ def get_playlist(playlist, user):
         'id': str(playlist.id),
         'title': playlist.title,
         'description': playlist.description,
-        'image': playlist.image
+        'image': playlist.image,
+        'user': get_user_data(playlist.user)
     }, status=200)
 
 def get_user_playlists(user):
@@ -90,7 +106,8 @@ def get_user_playlists(user):
             'title': playlist.title,
             'description': playlist.description,
             'song_count': playlist.song_playlists.count(),
-            'image': playlist.image
+            'image': playlist.image,
+            'user': get_user_data(playlist.user)
         }
         for playlist in playlists
     ]
@@ -114,7 +131,8 @@ def search_playlists(user, query):
             'title': playlist.title,
             'description': playlist.description,
             'song_count': playlist.song_playlists.count(),
-            'image': playlist.image
+            'image': playlist.image,
+            'user': get_user_data(playlist.user)
         }
         for playlist in playlists
     ]
