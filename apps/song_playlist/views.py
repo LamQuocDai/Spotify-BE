@@ -38,7 +38,18 @@ def add_to_liked_songs_view(request):
         try:
             data = json.loads(request.body)
             song_id = data.get('song_id')
-            response = addSongToPlaylist(request, None, song_id, is_liked_song=True)
+
+            user = request.user
+            # remove when finishing auth func
+            if user.is_anonymous:
+                user = authenticate(username='admin', password='123456')
+
+                if user is not None:
+                    login(request, user)
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Invalid login credentials for default user'},
+                                        status=401)
+            response = addSongToPlaylist(request, None, song_id, user.id, is_liked_song=True)
             return response
         except json.JSONDecodeError:
             return JsonResponse({'message': 'Invalid JSON data'}, status=400)
