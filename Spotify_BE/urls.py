@@ -17,9 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+from apps.users.views import CustomTokenObtainPairView
 from django.urls import path
-# from apps.users.views import create_user, get_user, get_users, update_user, delete_user
+from apps.users.views import create_user, get_user, get_users, update_user, delete_user
 from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getPlaylists, searchPlaylists
 from apps.song_playlist.views import (
     add_song_to_playlist, go_to_artist, view_credits, getSongsFromPlaylist,
@@ -29,6 +32,7 @@ from apps.song_playlist.views import (
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
     # User management
     path('users/', include('apps.users.urls')),
 
@@ -39,19 +43,19 @@ urlpatterns = [
     path('playlists/', include('apps.playlists.urls')),
 
     # # Chat management
-    path('chat/', include('apps.chat.urls')),
+    path('api/', include('apps.chat.urls')),
 
-    path('api/jwt/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/jwt/token/', CustomTokenObtainPairView.as_view(permission_classes=[AllowAny]), name='token_obtain_pair'),
     path('api/jwt/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/jwt/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/token/', ObtainAuthToken.as_view(), name='api_token_auth'),
 
     # User URLs
-    # path('users/', get_users, name='get_users'),
-    # path('users/<int:user_id>/', get_user, name='get_user'),
-    # path('users/create/', create_user, name='create_user'),
-    # path('users/<int:user_id>/update/', update_user, name='update_user'),
-    # path('users/<int:user_id>/delete/', delete_user, name='delete_user'),
+    path('users/', get_users, name='get_users'),
+    path('users/<int:user_id>/', get_user, name='get_user'),
+    path('users/create/', create_user, name='create_user'),
+    path('users/<int:user_id>/update/', update_user, name='update_user'),
+    path('users/<int:user_id>/delete/', delete_user, name='delete_user'),
 
     #Playlist URLs
     path('playlists/', getPlaylists, name='get_playlists'),
@@ -65,7 +69,7 @@ urlpatterns = [
     path('song_playlist/create/', add_song_to_playlist, name='create_song_playlist'),
     path('song_playlist/<uuid:playlist_id>/songs/', getSongsFromPlaylist, name='get_songs_from_playlist'),
     path('song_playlist/<uuid:playlist_id>/songs/search/', searchSongsFromPlaylist, name='search_songs_from_playlist'),
-    path('song_playlist/<uuid:playlist_id>/songs/<uuid:song_id>/delete/', deleteSongFromPlaylist, name='delete_song_from_playlist'),
+    path('song_playlist/<uuid:playlist_id>/songs/<uuid:song_id>/delete/', delete_song_from_playlist_view, name='delete_song_from_playlist'),
     path('song_playlist/<uuid:id>/delete/', go_to_artist, name='delete_song_playlist'),
     path('song_playlist/<uuid:id>/', view_credits, name='get_song_playlist'),
     path('song_playlist/liked_songs/add/', add_to_liked_songs_view, name='add_to_liked_songs'),
