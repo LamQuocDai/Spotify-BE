@@ -23,11 +23,11 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 # from apps.users.views import CustomTokenObtainPairView
 from django.urls import path
 from apps.users.views import create_user, get_user, get_users, update_user, delete_user
-from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getPlaylists, searchPlaylists
+from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getPlaylists, searchPlaylists, getUserPlaylists
 from apps.song_playlist.views import (
     add_song_to_playlist, go_to_artist, view_credits, getSongsFromPlaylist,
     deleteSongFrom_Playlist, searchSongsFromPlaylist, add_to_liked_songs_view,
-    get_liked_songs_view, remove_from_liked_songs_view, search_liked_songs_view
+    get_liked_songs_view, remove_from_liked_songs_view, search_liked_songs_view,
  )
 
 urlpatterns = [
@@ -38,9 +38,6 @@ urlpatterns = [
 
     # Song management
     path('api/', include('apps.songs.urls')),
-
-    # Playlist management
-    path('playlists/', include('apps.playlists.urls')),
 
     # # Chat management
     path('api/', include('apps.chat.urls')),
@@ -63,6 +60,9 @@ urlpatterns = [
     path('playlists/<uuid:id>/update/', updatePlaylist, name='update_playlist'),
     path('playlists/<uuid:id>/delete/', deletePlaylist, name='delete_playlist'),
     path('playlists/<uuid:id>/', getPlaylist, name='get_playlist'),
+
+    path('playlists/<uuid:id>/user', getUserPlaylists, name='get_user_playlist'),
+
     path('playlists/search/', searchPlaylists, name='search_playlists'),
 
     # SongPlaylist URLs

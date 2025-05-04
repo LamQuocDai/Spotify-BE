@@ -3,6 +3,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from Spotify_BE import settings
+from apps.users.models import User
 from .models import Playlist
 from .services import (
     create_playlist,
@@ -176,7 +177,6 @@ def getPlaylist(request, id):
         {"status": "error", "message": "Method not allowed"}, status=405
     )
 
-
 @csrf_exempt
 def getPlaylists(request):
     if request.method == "GET":
@@ -214,21 +214,11 @@ def getPlaylists(request):
 
 
 @csrf_exempt
-def getUserPlaylists(request):
+def getUserPlaylists(request, id):
+    print("ham nay dc goi")
     if request.method == "GET":
         try:
-            print("Request body:", request.body)
-            data = json.loads(request.body) if request.body else {}
-            print("Parsed data:", data)
-            token = request.GET.get("token") or data.get("token")
-            print("Token:", token)
-
-            # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
-            if error_response:
-                return error_response  # Trả về lỗi nếu có
-
-            print("Payload:", payload)
+            user = User.objects.get(id=id)
 
             # Lấy danh sách playlists của user
             response = get_user_playlists(user)
