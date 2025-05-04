@@ -181,8 +181,14 @@ class SocialLoginView(generics.GenericAPIView):
                 logger.info("Social auth %s: user=%s, uid=%s",
                            "created" if social_created else "updated", user.username, provider_id)
 
-                # Generate tokens
+                # Generate tokens with custom payload
                 refresh = RefreshToken.for_user(user)
+                refresh['first_name'] = user.first_name
+                refresh['username'] = user.username
+                refresh['email'] = user.email
+                refresh['image'] = user.image or ''
+                refresh['role'] = user.role if hasattr(user, 'role') else 'user'
+
                 logger.info("Returning response for user: %s", user.username)
                 return Response({
                     'user': UserSerializer(user).data,

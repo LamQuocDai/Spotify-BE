@@ -13,7 +13,7 @@ def createPlaylist(request):
 
         # remove when finishing auth func
         if user.is_anonymous:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(request.user)
 
             if user is not None:
                 login(request, user)
@@ -67,7 +67,7 @@ def getPlaylists(request):
 
         # remove when finishing auth func
         if user.is_anonymous:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(request.user)
             if user is not None:
                 login(request, user)
             else:
@@ -84,7 +84,7 @@ def getUserPlaylists(request):
 
         # remove when finishing auth func
         if user.is_anonymous:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(request.user)
             if user is not None:
                 login(request, user)
             else:
@@ -100,7 +100,7 @@ def searchPlaylists(request):
         query = request.GET.get('query', '')
 
         if request.user.is_anonymous:
-            user = authenticate(username='deptrai', password='ratdeptrai')
+            user = authenticate(request.user)
             if user is not None:
                 login(request, user)
             else:
