@@ -242,7 +242,7 @@ def search_liked_songs_view(request):
 
 
 @csrf_exempt
-def deleteSongFromPlaylist(request, playlist_id, song_id):
+def deleteSongFrom_Playlist(request, playlist_id, song_id):
     if request.method == 'DELETE':
         try:
             print("Request body:", request.body)
