@@ -20,9 +20,9 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
-from apps.users.views import CustomTokenObtainPairView
+# from apps.users.views import CustomTokenObtainPairView
 from django.urls import path
-from apps.users.views import create_user, get_user, get_users, update_user, delete_user
+# from apps.users.views import create_user, get_user, get_users, update_user, delete_user
 from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getPlaylists, searchPlaylists
 from apps.song_playlist.views import (
     add_song_to_playlist, go_to_artist, view_credits, getSongsFromPlaylist,
@@ -45,7 +45,7 @@ urlpatterns = [
     # # Chat management
     path('api/', include('apps.chat.urls')),
 
-    path('api/jwt/token/', CustomTokenObtainPairView.as_view(permission_classes=[AllowAny]), name='token_obtain_pair'),
+    # path('api/jwt/token/', CustomTokenObtainPairView.as_view(permission_classes=[AllowAny]), name='token_obtain_pair'),
     path('api/jwt/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/jwt/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/token/', ObtainAuthToken.as_view(), name='api_token_auth'),
@@ -69,7 +69,7 @@ urlpatterns = [
     path('song_playlist/create/', add_song_to_playlist, name='create_song_playlist'),
     path('song_playlist/<uuid:playlist_id>/songs/', getSongsFromPlaylist, name='get_songs_from_playlist'),
     path('song_playlist/<uuid:playlist_id>/songs/search/', searchSongsFromPlaylist, name='search_songs_from_playlist'),
-    path('song_playlist/<uuid:playlist_id>/songs/<uuid:song_id>/delete/', delete_song_from_playlist_view, name='delete_song_from_playlist'),
+    # path('song_playlist/<uuid:playlist_id>/songs/<uuid:song_id>/delete/', delete_song_from_playlist_view, name='delete_song_from_playlist'),
     path('song_playlist/<uuid:id>/delete/', go_to_artist, name='delete_song_playlist'),
     path('song_playlist/<uuid:id>/', view_credits, name='get_song_playlist'),
     path('song_playlist/liked_songs/add/', add_to_liked_songs_view, name='add_to_liked_songs'),
