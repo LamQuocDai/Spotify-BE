@@ -6,6 +6,8 @@ from apps.users.models import User
 from .models import Chat
 from .serializers import ChatSerializer
 from rest_framework.permissions import IsAuthenticated
+from apps.users.serializers import UserSerializer
+from django.contrib.auth.models import Group
 
 class ConversationList(APIView):
     permission_classes = [IsAuthenticated]
@@ -16,7 +18,7 @@ class ConversationList(APIView):
         user1_list = Chat.objects.filter(user2=current_user).values_list('user1', flat=True).distinct()
         all_users = set(user2_list) | set(user1_list)
         all_users.discard(current_user.id)
-        conversations = User.objects.filter(id__in=all_users).values('id', 'username')
+        conversations = User.objects.filter(id__in=all_users).values('id', 'username','image')
         return Response(conversations)
 
 class MessageList(APIView):
@@ -49,3 +51,38 @@ class MessageList(APIView):
             )
             return Response(ChatSerializer(chat).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SearchUsers(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        query = request.query_params.get('q', '')
+
+        if not query:
+            return Response([])
+
+        # Get admin group
+        admin_group = Group.objects.filter(name='Admin').first()
+
+        # Filter users:
+        # 1. Exclude the current user
+        # 2. Exclude admins
+        # 3. Search by username, first_name, or last_name
+        # 4. Limit to 10 results for performance
+        users = User.objects.exclude(id=request.user.id)
+
+        # Exclude admins if admin group exists
+        if admin_group:
+            users = users.exclude(groups=admin_group)
+
+        # Search by username, first_name or last_name
+        users = users.filter(
+            Q(username__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query)
+        )[:10]
+
+        # Serialize only necessary fields
+        data = users.values('id', 'username', 'image', 'first_name', 'last_name')
+        return Response(data)
