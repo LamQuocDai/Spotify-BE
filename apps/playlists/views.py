@@ -74,7 +74,9 @@ def updatePlaylist(request, id):
                 playlist = Playlist.objects.get(id=id)
             except Playlist.DoesNotExist:
                 return JsonResponse({"status": "error", "message": "Playlist not found"}, status=404)
-
+            
+            print(playlist)
+            print(data)
             # Cập nhật playlist
             response = update_playlist(playlist, data, user)
             return response

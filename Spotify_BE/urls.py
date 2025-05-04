@@ -35,10 +35,6 @@ urlpatterns = [
 
     # User management
     path('users/', include('apps.users.urls')),
-
-    # Playlist management
-    path('playlists/', include('apps.playlists.urls')),
-
     # Song management
     path('api/', include('apps.songs.urls')),
 
@@ -63,9 +59,7 @@ urlpatterns = [
     path('playlists/<uuid:id>/update/', updatePlaylist, name='update_playlist'),
     path('playlists/<uuid:id>/delete/', deletePlaylist, name='delete_playlist'),
     path('playlists/<uuid:id>/', getPlaylist, name='get_playlist'),
-
     path('playlists/<uuid:id>/user', getUserPlaylists, name='get_user_playlist'),
-
     path('playlists/search/', searchPlaylists, name='search_playlists'),
 
     # SongPlaylist URLs
