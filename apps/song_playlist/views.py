@@ -21,21 +21,30 @@ def add_song_to_playlist(request):
             print("Request body:", request.body)
             data = json.loads(request.body)
             print("Parsed data:", data)
+
             token = data.get("token")
+            playlist_id = data.get("playlist_id")
+            song_id = data.get("song_id")
+
             print("Token:", token)
+            print("Playlist ID:", playlist_id)
+            print("Song ID:", song_id)
+
+            if not all([token, playlist_id, song_id]):
+                return JsonResponse(
+                    {"status": "error", "message": "Token, playlist_id, and song_id are required"},
+                    status=400
+                )
 
             # Sử dụng hàm chung để giải mã token
             user, payload, error_response = decode_jwt_token(token)
             if error_response:
-                return error_response  # Trả về lỗi nếu có
+                return error_response
 
             print("Payload:", payload)
 
-            playlist_id = data.get('playlist_id')
-            song_id = data.get('song_id')
-
             # Thêm bài hát vào playlist
-            response = addSongToPlaylist(request, playlist_id, song_id)
+            response = addSongToPlaylist(request, playlist_id, song_id, user.id)
             return response
 
         except json.JSONDecodeError:
@@ -95,16 +104,19 @@ def add_to_liked_songs_view(request):
 def getSongsFromPlaylist(request, playlist_id):
     if request.method == 'GET':
         try:
-            print("Request body:", request.body)
-            data = json.loads(request.body) if request.body else {}
-            print("Parsed data:", data)
-            token = request.GET.get("token") or data.get("token")
+            token = request.GET.get("token")
             print("Token:", token)
+            print("Query params:", dict(request.GET))
+
+            if not token:
+                return JsonResponse(
+                    {"status": "error", "message": "Token is required"}, status=400
+                )
 
             # Sử dụng hàm chung để giải mã token
             user, payload, error_response = decode_jwt_token(token)
             if error_response:
-                return error_response  # Trả về lỗi nếu có
+                return error_response
 
             print("Payload:", payload)
 
@@ -112,10 +124,6 @@ def getSongsFromPlaylist(request, playlist_id):
             response = getSongFromPlaylist(playlist_id, user.id)
             return response
 
-        except json.JSONDecodeError:
-            return JsonResponse(
-                {"status": "error", "message": "Invalid JSON data"}, status=400
-            )
         except Exception as e:
             print("Unexpected error:", str(e))
             return JsonResponse(
