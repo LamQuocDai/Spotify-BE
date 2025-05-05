@@ -99,6 +99,7 @@ def getSongFromPlaylist(playlist_id, user_id, is_liked_song=False):
 
 def deleteSongFromPlaylist(playlist_id, song_id, user_id, is_liked_song=False):
     user = get_user_or_404(user_id)
+
     if not user:
         return JsonResponse({'message': 'User not found'}, status=404)
 
@@ -110,10 +111,10 @@ def deleteSongFromPlaylist(playlist_id, song_id, user_id, is_liked_song=False):
     if not playlist:
         return JsonResponse({'message': 'Playlist not found'}, status=404)
 
-    if not is_liked_song and not check_playlist_permission(playlist, user):
-        return JsonResponse({
-            'message': 'You do not have permission to modify this playlist'
-        }, status=403)
+    # if not is_liked_song and not check_playlist_permission(playlist, user):
+    #     return JsonResponse({
+    #         'message': 'You do not have permission to modify this playlist'
+    #     }, status=403)
 
     try:
         song_playlist = SongPlaylist.objects.get(playlist=playlist, song=song)
