@@ -93,7 +93,9 @@ def delete_playlist(playlist, user):
 
 
 def get_playlist(playlist, user):
-    if playlist.user != user:
+    is_admin = user.groups.filter(name__in=['admin', 'full_role']).exists()
+
+    if playlist.user != user and not is_admin:
         return JsonResponse({
             'message': 'You do not have permission to view this playlist'
         }, status=403)
