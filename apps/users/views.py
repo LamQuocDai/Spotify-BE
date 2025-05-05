@@ -1,19 +1,30 @@
+import json
+
 import requests
 import uuid
+
+from django.core.serializers import serialize
 import json
 from django.core.serializers import serialize
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status, permissions
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from rest_framework_simplejwt.views import TokenObtainPairView
 from social_django.models import UserSocialAuth
 import logging
 from django.core.cache import cache
 from .services import create_user_service, get_users_service, get_user_service, update_user_service, delete_user_service
+from apps.utils.response import success_response, error_response
+
+from .services import create_user_service, get_users_service, get_user_service, update_user_service, delete_user_service
 from Spotify_BE import settings
-from .serializers import RegisterSerializer, UserSerializer, LoginSerializer, SocialLoginSerializer
+from .serializers import RegisterSerializer, UserSerializer, LoginSerializer, SocialLoginSerializer, \
+    CustomTokenObtainPairSerializer
 from .models import User
 from apps.utils.response import success_response, error_response
 

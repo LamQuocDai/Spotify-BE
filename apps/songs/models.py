@@ -4,7 +4,7 @@ import uuid
 
 class Genre(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100, unique=True, db_index=True)
+    name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.name
@@ -14,7 +14,7 @@ class Song(models.Model):
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE, related_name='songs')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='uploaded_songs')
     singer_name = models.CharField(max_length=100)
-    song_name = models.CharField(max_length=100)
+    song_name = models.CharField(max_length=100) 
     url_video = models.URLField(max_length=1000, blank=True, null=True)
     image = models.URLField(max_length=1000, blank=True, null=True)
     url_audio = models.URLField(max_length=1000)
