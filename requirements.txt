@@ -7,15 +7,15 @@ djangorestframework-simplejwt  # Nếu bạn sử dụng JWT authentication
 psycopg2-binary  # Cần để kết nối với PostgreSQL trên AWS RDS
 
 # AWS Deployment (Tùy chọn)
-boto3
+boto3~=1.37.28
 django-storages  # Hỗ trợ lưu trữ tệp trên AWS S3
 
 # WebSockets (nếu cần real-time chat)
-channels
+channels~=4.2.2
 channels-redis  # Nếu dùng Redis làm message broker
 
 # Env Management
-python-dotenv  # Đọc file .env để lưu các biến môi trường
+python-dotenv~=1.1.0
 
 # CORS Support
 django-cors-headers  # Cho phép frontend React truy cập API
@@ -32,10 +32,19 @@ alembic  # Nếu dùng với SQLAlchemy
 
 botocore~=1.37.28
 # Dung BaseModel
-pydantic  # Nếu bạn dùng Pydantic cho validation
-pillow
+pydantic~=2.11.3
+pillow~=11.2.1
 
-social-auth-app-django
+social-auth-app-django~=5.4.3
 django-cors-headers
 
 daphne
+requests~=2.32.3
+PyJWT~=2.9.0
+pip~=25.0.1
+attrs~=25.3.0
+pyOpenSSL~=25.0.0
+cryptography~=44.0.3
+setuptools~=80.3.1
+packaging~=24.2
+typing_extensions~=4.13.1

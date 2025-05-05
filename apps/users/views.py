@@ -48,6 +48,7 @@ def create_user(request):
             return success_response("Create user success", user_json)
         except Exception as e:
             return error_response(e.__str__())
+    return None
 
 
 def get_users(request):
@@ -57,6 +58,7 @@ def get_users(request):
             return success_response("Get list success", users)
         except Exception as e:
             return error_response(e.__str__())
+    return None
 
 
 def get_user(request, user_id):
@@ -70,6 +72,7 @@ def get_user(request, user_id):
             return success_response("Get user success", user_json)
         except Exception as e:
             return error_response(e.__str__())
+    return None
 
 
 @csrf_exempt
@@ -84,6 +87,7 @@ def update_user(request, user_id):
             return success_response("Update user success", user_json)
         except Exception as e:
             return error_response(e.__str__())
+    return None
 
 
 @csrf_exempt
@@ -98,6 +102,7 @@ def delete_user(request, user_id):
             return success_response("Delete user success", user_json)
         except Exception as e:
             return error_response(e.__str__())
+    return None
 
 
 def post(self, request, *args, **kwargs):
