@@ -22,7 +22,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 # from apps.users.views import CustomTokenObtainPairView
 from django.urls import path
-# from apps.users.views import create_user, get_user, get_users, update_user, delete_user
+from apps.users.views import create_user, get_user, get_users, update_user, delete_user
 from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getPlaylists, searchPlaylists
 from apps.song_playlist.views import (
     add_song_to_playlist, go_to_artist, view_credits, getSongsFromPlaylist,
@@ -51,11 +51,11 @@ urlpatterns = [
     path('api/token/', ObtainAuthToken.as_view(), name='api_token_auth'),
 
     # User URLs
-    # path('users/', get_users, name='get_users'),
-    # path('users/<int:user_id>/', get_user, name='get_user'),
-    # path('users/create/', create_user, name='create_user'),
-    # path('users/<int:user_id>/update/', update_user, name='update_user'),
-    # path('users/<int:user_id>/delete/', delete_user, name='delete_user'),
+    path('users/', get_users, name='get_users'),
+    path('users/<int:user_id>/', get_user, name='get_user'),
+    path('users/create/', create_user, name='create_user'),
+    path('users/<int:user_id>/update/', update_user, name='update_user'),
+    path('users/<int:user_id>/delete/', delete_user, name='delete_user'),
 
     #Playlist URLs
     path('playlists/', getPlaylists, name='get_playlists'),

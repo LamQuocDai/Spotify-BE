@@ -2,7 +2,7 @@ from .models import User
 
 def create_user_service(data):
     try:
-        user = User.objects.create(
+        user = User.objects.create_user(
             username=data['username'],
             email=data['email'],
             password=data['password'],
@@ -12,7 +12,10 @@ def create_user_service(data):
         )
         print(f"Creating user with data: {data}")
 
-        user.groups.add(data['group'])
+
+        if 'group' in data and data['group']:
+            user.groups.add(data['group'])
+
         return user
     except Exception as e:
         return None
