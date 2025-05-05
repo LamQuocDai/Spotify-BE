@@ -100,27 +100,22 @@ def updatePlaylist(request, id):
 def deletePlaylist(request, id):
     if request.method == "DELETE":
         try:
-            print("Request body:", request.body)
-            data = json.loads(request.body) if request.body else {}
-            print("Parsed data:", data)
-            token = data.get("token")
-            print("Token:", token)
+            token = request.GET.get("token")
 
-            # Sử dụng hàm chung để giải mã token
             user, payload, error_response = decode_jwt_token(token)
             if error_response:
-                return error_response  # Trả về lỗi nếu có
+                return error_response
 
-            print("Payload:", payload)
-
-            # Kiểm tra playlist tồn tại
             try:
                 playlist = Playlist.objects.get(id=id)
             except Playlist.DoesNotExist:
-                return JsonResponse({"status": "error", "message": "Playlist not found"}, status=404)
+                print("Playlist not found:", id)
+                return JsonResponse(
+                    {"status": "error", "message": "Playlist not found"}, status=404
+                )
 
-            # Xóa playlist
             response = delete_playlist(playlist, user)
+            print("Delete response:", response)
             return response
 
         except json.JSONDecodeError:
@@ -128,9 +123,8 @@ def deletePlaylist(request, id):
                 {"status": "error", "message": "Invalid JSON data"}, status=400
             )
         except Exception as e:
-            print("Unexpected error:", str(e))
             return JsonResponse(
-                {"status": "error", "message": str(e)}, status=500
+                {"status": "error", "message": "Internal server error"}, status=500
             )
 
     return JsonResponse(

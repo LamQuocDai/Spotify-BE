@@ -105,8 +105,6 @@ def getSongsFromPlaylist(request, playlist_id):
     if request.method == 'GET':
         try:
             token = request.GET.get("token")
-            print("Token:", token)
-            print("Query params:", dict(request.GET))
 
             if not token:
                 return JsonResponse(
