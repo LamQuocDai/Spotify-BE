@@ -13,10 +13,10 @@ This is the back-end implementation for a Spotify-like music streaming service. 
 
 ## Tech Stack
 
-- **Language**: Python (99.7%)
-- **Frameworks**: (e.g., Flask, Django, FastAPI) - Specify the framework used here.
-- **Database**: (e.g., PostgreSQL, MySQL, MongoDB) - Specify the database used here.
-- **Others**: (e.g., Docker, Redis, Celery) - Specify additional technologies used.
+- **Language**: Python
+- **Frameworks**: Django
+- **Database**: PostgreSQL (Supabase)
+- **Others**:  Docker, Redis, Celery, Amazon S3, WebSocket
 
 ## Installation
 
