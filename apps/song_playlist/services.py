@@ -86,7 +86,8 @@ def getSongFromPlaylist(playlist_id, user_id, is_liked_song=False):
             'song_name': song_playlist.song.song_name,
             'singer_name': song_playlist.song.singer_name,
             'genre': song_playlist.song.genre.name if song_playlist.song.genre else None,
-            'url': song_playlist.song.url,
+            'url_audio': song_playlist.song.url_audio,
+            'url_video': song_playlist.song.url_video,
             'image': song_playlist.song.image
         }
         for song_playlist in song_playlists
