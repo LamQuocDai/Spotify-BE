@@ -78,15 +78,33 @@ def create_user(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
+
+            # Validate the received data
+            print(f"Received data: {data}")
+
+            # Create the user
             user = create_user_service(data)
-            # Only serialize if user is not None
-            if user:
-                user_json = json.loads(serialize('json', [user]))[0]['fields']
-                return success_response("Create user success", user_json)
-            else:
-                return error_response("Failed to create user")
+
+            # Serialize the user data for the response
+            user_data = {
+                'id': str(user.id),
+                'username': user.username,
+                'email': user.email,
+                'phone': user.phone,
+                'gender': user.gender,
+                'image': user.image,
+                'status': user.status,
+            }
+
+            return success_response("Create user success", user_data)
+
+        except ValueError as e:
+            # Handle validation errors
+            return error_response(f"Validation error: {str(e)}")
         except Exception as e:
-            return error_response(e.__str__())
+            # Handle other exceptions
+            print(f"Error in create_user view: {str(e)}")
+            return error_response(f"Failed to create user: {str(e)}")
 
 
 def get_users(request):
