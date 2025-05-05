@@ -59,8 +59,6 @@ def update_playlist(playlist, data, user):
     description = data.get('description', playlist.description)
     image = data.get('image', playlist.image)
 
-    print("title:", title)
-    print("description:", description)
     if image and not validate_base64_image(image):
         return JsonResponse({
             'status': 'error', 'message': 'Invalid base64 image format'
@@ -81,7 +79,9 @@ def update_playlist(playlist, data, user):
 
 
 def delete_playlist(playlist, user):
-    if playlist.user != user:
+    is_admin = user.groups.filter(name__in=['admin', 'full_role']).exists()
+
+    if playlist.user != user and not is_admin:
         return JsonResponse({
             'message': 'You do not have permission to delete this playlist'
         }, status=403)
@@ -161,10 +161,41 @@ def search_playlists(user, query, page=1, page_size=10):
         for playlist in paginated_playlists
     ]
 
-    print(playlists_data)
-
     return JsonResponse({
         'message': 'Playlists retrieved successfully',
+        'playlists': playlists_data,
+        'page': page,
+        'page_size': page_size,
+        'total_pages': paginator.num_pages,
+        'total_playlists': paginator.count
+    }, status=200)
+
+def get_all_playlists(page=1, page_size=10):
+    playlists = Playlist.objects.all().order_by('id')
+
+    paginator = Paginator(playlists, page_size)
+    try:
+        paginated_playlists = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_playlists = paginator.page(1)
+    except EmptyPage:
+        paginated_playlists = paginator.page(paginator.num_pages)
+
+    playlists_data = [
+        {
+            'id': str(playlist.id),
+            'title': playlist.title,
+            'description': playlist.description,
+            'song_count': playlist.song_playlists.count(),
+            'image': playlist.image,
+            'is_liked_song': playlist.is_likedSong_playlist,
+            'user': get_user_data(playlist.user)
+        }
+        for playlist in paginated_playlists
+    ]
+
+    return JsonResponse({
+        'message': 'All playlists retrieved successfully',
         'playlists': playlists_data,
         'page': page,
         'page_size': page_size,
