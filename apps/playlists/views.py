@@ -217,7 +217,6 @@ def getPlaylists(request):
 
 @csrf_exempt
 def getUserPlaylists(request, id):
-    print("ham nay dc goi")
     if request.method == "GET":
         try:
             user = User.objects.get(id=id)
@@ -243,36 +242,41 @@ def getUserPlaylists(request, id):
 
 @csrf_exempt
 def searchPlaylists(request):
+    print("Entering searchPlaylists view")
     if request.method == "GET":
         try:
-            print("Request body:", request.body)
-            data = json.loads(request.body) if request.body else {}
-            print("Parsed data:", data)
-            token = request.GET.get("token") or data.get("token")
-            print("Token:", token)
+            query = request.GET.get("q", "")
+            page = request.GET.get("page", "1")
+            page_size = request.GET.get("page_size", "10")
+            token = request.GET.get("token")
 
-            # Sử dụng hàm chung để giải mã token
+            # Decode JWT token
+            if not token:
+                return JsonResponse(
+                    {"status": "error", "message": "Token is required"},
+                    status=401
+                )
             user, payload, error_response = decode_jwt_token(token)
             if error_response:
-                return error_response  # Trả về lỗi nếu có
+                print("Token decode error:", error_response)
+                return error_response
 
-            print("Payload:", payload)
 
-            # Lấy query tìm kiếm
-            query = request.GET.get("query", "")
-            response = search_playlists(user, query)
+            response = search_playlists(user, query, page, page_size)
             return response
 
         except json.JSONDecodeError:
+            print("JSON decode error")
             return JsonResponse(
                 {"status": "error", "message": "Invalid JSON data"}, status=400
             )
         except Exception as e:
-            print("Unexpected error:", str(e))
+            print("Unexpected error in searchPlaylists:", str(e))
             return JsonResponse(
-                {"status": "error", "message": str(e)}, status=500
+                {"status": "error", "message": "Internal server error"}, status=500
             )
 
+    print("Method not allowed")
     return JsonResponse(
         {"status": "error", "message": "Method not allowed"}, status=405
     )

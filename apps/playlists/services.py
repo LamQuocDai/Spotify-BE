@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Q
 from django.http import JsonResponse
 from .models import Playlist
@@ -130,7 +131,7 @@ def get_user_playlists(user):
         'playlists': playlists_data
     }, status=200)
 
-def search_playlists(user, query):
+def search_playlists(user, query, page=1, page_size=10):
     if not user.is_authenticated:
         return JsonResponse({
             'message': 'User not authenticated'
@@ -138,7 +139,16 @@ def search_playlists(user, query):
 
     playlists = Playlist.objects.filter(user=user).filter(
         Q(title__icontains=query) | Q(description__icontains=query)
-    )
+    ).order_by('id')
+
+    paginator = Paginator(playlists, page_size)
+    try:
+        paginated_playlists = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_playlists = paginator.page(1)
+    except EmptyPage:
+        paginated_playlists = paginator.page(paginator.num_pages)
+
     playlists_data = [
         {
             'id': str(playlist.id),
@@ -148,9 +158,16 @@ def search_playlists(user, query):
             'image': playlist.image,
             'user': get_user_data(playlist.user)
         }
-        for playlist in playlists
+        for playlist in paginated_playlists
     ]
+
+    print(playlists_data)
+
     return JsonResponse({
         'message': 'Playlists retrieved successfully',
-        'playlists': playlists_data
+        'playlists': playlists_data,
+        'page': page,
+        'page_size': page_size,
+        'total_pages': paginator.num_pages,
+        'total_playlists': paginator.count
     }, status=200)
