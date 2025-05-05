@@ -4,7 +4,7 @@ import uuid
 
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    phone = models.CharField(max_length=10, unique=True)
+    phone = models.CharField(max_length=10, blank=True, null=True, unique=True)
     gender = models.IntegerField(choices=[(0, 'Female'), (1, 'Male'), (2, 'Other')], default=2)
     image = models.URLField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=20, choices=[('active', 'Active'), ('banned', 'Banned')], default='active')

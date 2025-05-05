@@ -1,6 +1,7 @@
 import boto3
 from botocore.exceptions import ClientError
 from django.conf import settings
+from django.contrib.auth import authenticate, login
 from django.http import StreamingHttpResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -20,7 +21,7 @@ import urllib.parse
 logger = logging.getLogger(__name__)
 
 class SongPagination(PageNumberPagination):
-    page_size = 10
+    page_size = 50
     page_size_query_param = 'page_size'
     max_page_size = 100
 
@@ -28,9 +29,10 @@ class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    pagination_class = SongPagination
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['list', 'retrieve', 'all']:
             return [IsAuthenticatedOrReadOnly()]
         return [IsAuthenticated()]
 
@@ -52,6 +54,27 @@ class GenreViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'], url_path='all')
+    def all(self, request):
+        queryset = Genre.objects.all().order_by('name')
+        serializer = GenreSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='search')
+    def search(self, request):
+        query = request.query_params.get('q', '')
+
+        filters = Q()
+        if query:
+            filters &= Q(name__icontains=query)
+
+        queryset = Genre.objects.filter(filters).order_by('name')
+
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+        serializer = GenreSerializer(page, many=True, context={'request': request})
+        return paginator.get_paginated_response(serializer.data)
 
 class SongViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -93,10 +116,12 @@ class SongViewSet(viewsets.ViewSet):
 
     def update(self, request, pk=None):
         song = get_object_or_404(Song, pk=pk)
+        print("song.user:", song.user)
+        print("current user:", request.user)
 
-        if song.user != request.user:
-            return Response({'error': 'You do not have permission to update this song'},
-                            status=status.HTTP_403_FORBIDDEN)
+        # if song.user != request.user:
+        #     return Response({'error': 'You do not have permission to update this song'},
+        #                     status=status.HTTP_403_FORBIDDEN)
 
         form = SongForm(data=request.data, files=request.FILES, instance=song)
         if form.is_valid():
@@ -111,9 +136,11 @@ class SongViewSet(viewsets.ViewSet):
     def destroy(self, request, pk=None):
         song = get_object_or_404(Song, pk=pk)
 
-        if song.user != request.user:
-            return Response({'error': 'You do not have permission to delete this song'},
-                            status=status.HTTP_403_FORBIDDEN)
+        # if song.user != request.user:
+        #     return Response(
+        #         {'error': 'You do not have permission to delete this song'},
+        #         status=status.HTTP_403_FORBIDDEN
+        #     )
 
         s3_uploader = S3Uploader()
         if song.url_audio:
@@ -197,27 +224,18 @@ class SongViewSet(viewsets.ViewSet):
         query = request.query_params.get('q', '')
         genre_id = request.query_params.get('genre', None)
 
-        # Start with a base query
         filters = Q()
-
-        # Apply song_name filter if query is provided
         if query:
             filters &= Q(song_name__icontains=query)
 
-        # Apply genre filter if genre_id is provided
         if genre_id:
             try:
-                genre_id = int(genre_id)
                 filters &= Q(genre_id=genre_id)
-            except ValueError:
-                return Response({'error': 'Genre ID must be a valid integer'}, status=status.HTTP_400_BAD_REQUEST)
             except Genre.DoesNotExist:
                 return Response({'error': 'Genre not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Apply filters to the queryset and order by song_name for consistency
         queryset = Song.objects.filter(filters).order_by('song_name')
 
-        # Paginate the results
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(queryset, request)
         serializer = SongSerializer(page, many=True, context={'request': request})

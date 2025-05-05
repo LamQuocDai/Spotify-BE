@@ -1,6 +1,19 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token['user_id'] = str(user.id)
+        # Get user groups (roles)
+        token['groups'] = list(user.groups.values_list('name', flat=True))
+
+        return token
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -29,3 +42,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+class UserSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = User
+            fields = ('id', 'username', 'email', 'first_name', 'last_name', 'phone', 'gender', 'image', 'status')
+
+class LoginSerializer(serializers.Serializer):
+        username = serializers.CharField(required=True)
+        password = serializers.CharField(required=True, write_only=True)
+
+class SocialLoginSerializer(serializers.Serializer):
+    code = serializers.CharField(required=True)
+    provider = serializers.CharField(required=True)

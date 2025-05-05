@@ -22,12 +22,12 @@ def get_playlist_or_create_liked_songs(user, playlist_id=None, is_liked_song=Fal
     try:
         if is_liked_song:
             try:
-                return Playlist.objects.get(user=user, is_liked_songs=True)
+                return Playlist.objects.get(user=user, is_likedSong_playlist=True)
             except Playlist.DoesNotExist:
                 return Playlist.objects.create(
                     user=user,
                     title="Liked Songs",
-                    is_liked_songs=True
+                    is_likedSong_playlist=True
                 )
         return Playlist.objects.get(id=playlist_id)
     except Playlist.DoesNotExist:
@@ -39,8 +39,7 @@ def check_playlist_permission(playlist, user):
     return True
 
 # -------------------------------PLAYLIST------------------------------------
-def addSongToPlaylist(request, playlist_id, song_id, is_liked_song=False):
-    user_id = request.user.id
+def addSongToPlaylist(request, playlist_id, song_id, user_id, is_liked_song=False):
     user = get_user_or_404(user_id)
     if not user:
         return JsonResponse({'message': 'User not found'}, status=404)
@@ -87,7 +86,8 @@ def getSongFromPlaylist(playlist_id, user_id, is_liked_song=False):
             'song_name': song_playlist.song.song_name,
             'singer_name': song_playlist.song.singer_name,
             'genre': song_playlist.song.genre.name if song_playlist.song.genre else None,
-            'url': song_playlist.song.url,
+            'url_audio': song_playlist.song.url_audio,
+            'url_video': song_playlist.song.url_video,
             'image': song_playlist.song.image
         }
         for song_playlist in song_playlists
