@@ -12,38 +12,29 @@ from .services import (
     searchSongFromPlaylist,
 )
 from ..utils.jwt_utils import decode_jwt_token
+from ..utils.helper import get_token
 
 
 @csrf_exempt
 def add_song_to_playlist(request):
     if request.method == 'POST':
         try:
-            print("Request body:", request.body)
             data = json.loads(request.body)
-            print("Parsed data:", data)
 
-            token = data.get("token")
             playlist_id = data.get("playlist_id")
             song_id = data.get("song_id")
 
-            print("Token:", token)
-            print("Playlist ID:", playlist_id)
-            print("Song ID:", song_id)
-
-            if not all([token, playlist_id, song_id]):
+            if not all([playlist_id, song_id]):
                 return JsonResponse(
-                    {"status": "error", "message": "Token, playlist_id, and song_id are required"},
+                    {"status": "error", "message": "playlist_id, and song_id are required"},
                     status=400
                 )
 
             # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response
 
-            print("Payload:", payload)
-
-            # Thêm bài hát vào playlist
             response = addSongToPlaylist(request, playlist_id, song_id, user.id)
             return response
 
@@ -52,7 +43,6 @@ def add_song_to_playlist(request):
                 {"status": "error", "message": "Invalid JSON data"}, status=400
             )
         except Exception as e:
-            print("Unexpected error:", str(e))
             return JsonResponse(
                 {"status": "error", "message": str(e)}, status=500
             )
@@ -66,18 +56,12 @@ def add_song_to_playlist(request):
 def add_to_liked_songs_view(request):
     if request.method == 'POST':
         try:
-            print("Request body:", request.body)
             data = json.loads(request.body)
-            print("Parsed data:", data)
-            token = data.get("token")
-            print("Token:", token)
 
             # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response  # Trả về lỗi nếu có
-
-            print("Payload:", payload)
 
             song_id = data.get('song_id')
 
@@ -104,26 +88,16 @@ def add_to_liked_songs_view(request):
 def getSongsFromPlaylist(request, playlist_id):
     if request.method == 'GET':
         try:
-            token = request.GET.get("token")
-
-            if not token:
-                return JsonResponse(
-                    {"status": "error", "message": "Token is required"}, status=400
-                )
-
             # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response
-
-            print("Payload:", payload)
 
             # Lấy danh sách bài hát từ playlist
             response = getSongFromPlaylist(playlist_id, user.id)
             return response
 
         except Exception as e:
-            print("Unexpected error:", str(e))
             return JsonResponse(
                 {"status": "error", "message": str(e)}, status=500
             )
@@ -137,20 +111,12 @@ def getSongsFromPlaylist(request, playlist_id):
 def get_liked_songs_view(request):
     if request.method == 'GET':
         try:
-            print("Request body:", request.body)
             data = json.loads(request.body) if request.body else {}
-            print("Parsed data:", data)
-            token = request.GET.get("token") or data.get("token")
-            print("Token:", token)
 
-            # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response  # Trả về lỗi nếu có
 
-            print("Payload:", payload)
-
-            # Lấy danh sách bài hát yêu thích
             response = getSongFromPlaylist(None, user.id, is_liked_song=True)
             return response
 
@@ -173,18 +139,12 @@ def get_liked_songs_view(request):
 def searchSongsFromPlaylist(request, playlist_id):
     if request.method == 'GET':
         try:
-            print("Request body:", request.body)
             data = json.loads(request.body) if request.body else {}
-            print("Parsed data:", data)
-            token = request.GET.get("token") or data.get("token")
-            print("Token:", token)
 
             # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response  # Trả về lỗi nếu có
-
-            print("Payload:", payload)
 
             # Lấy query tìm kiếm
             query = request.GET.get('query', None)
@@ -212,18 +172,9 @@ def searchSongsFromPlaylist(request, playlist_id):
 def search_liked_songs_view(request):
     if request.method == 'GET':
         try:
-            print("Request body:", request.body)
-            data = json.loads(request.body) if request.body else {}
-            print("Parsed data:", data)
-            token = request.GET.get("token") or data.get("token")
-            print("Token:", token)
-
-            # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response  # Trả về lỗi nếu có
-
-            print("Payload:", payload)
 
             # Lấy query tìm kiếm
             query = request.GET.get('query', None)
@@ -251,9 +202,7 @@ def search_liked_songs_view(request):
 def deleteSongFrom_Playlist(request, playlist_id, song_id):
     if request.method == 'DELETE':
         try:
-            token = request.GET.get("token")
-
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response
 
@@ -261,10 +210,8 @@ def deleteSongFrom_Playlist(request, playlist_id, song_id):
             return response
 
         except Exception as e:
-            print("Unexpected error in deleteSongFrom_Playlist:", str(e))
             return JsonResponse({"status": "error", "message": "Internal server error: " + str(e)}, status=500)
 
-    print("Method not allowed")
     return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
 
 
@@ -272,18 +219,9 @@ def deleteSongFrom_Playlist(request, playlist_id, song_id):
 def remove_from_liked_songs_view(request, song_id):
     if request.method == 'DELETE':
         try:
-            print("Request body:", request.body)
-            data = json.loads(request.body) if request.body else {}
-            print("Parsed data:", data)
-            token = data.get("token")
-            print("Token:", token)
-
-            # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response  # Trả về lỗi nếu có
-
-            print("Payload:", payload)
 
             # Xóa bài hát khỏi danh sách yêu thích
             response = deleteSongFromPlaylist(None, song_id, user.id, is_liked_song=True)
@@ -294,7 +232,6 @@ def remove_from_liked_songs_view(request, song_id):
                 {"status": "error", "message": "Invalid JSON data"}, status=400
             )
         except Exception as e:
-            print("Unexpected error:", str(e))
             return JsonResponse(
                 {"status": "error", "message": str(e)}, status=500
             )
@@ -303,23 +240,14 @@ def remove_from_liked_songs_view(request, song_id):
         {"status": "error", "message": "Method not allowed"}, status=405
     )
 
-
 @csrf_exempt
 def go_to_artist(request, artist_id):
     if request.method == 'GET':
         try:
-            print("Request body:", request.body)
-            data = json.loads(request.body) if request.body else {}
-            print("Parsed data:", data)
-            token = request.GET.get("token") or data.get("token")
-            print("Token:", token)
-
             # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response  # Trả về lỗi nếu có
-
-            print("Payload:", payload)
 
             # Xem thông tin nghệ sĩ
             response = goToArtist(request, artist_id)
@@ -339,23 +267,14 @@ def go_to_artist(request, artist_id):
         {"status": "error", "message": "Method not allowed"}, status=405
     )
 
-
 @csrf_exempt
 def view_credits(request, song_id):
     if request.method == 'GET':
         try:
-            print("Request body:", request.body)
-            data = json.loads(request.body) if request.body else {}
-            print("Parsed data:", data)
-            token = request.GET.get("token") or data.get("token")
-            print("Token:", token)
-
             # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response  # Trả về lỗi nếu có
-
-            print("Payload:", payload)
 
             # Xem thông tin tín dụng bài hát
             response = view_credits(request, song_id)

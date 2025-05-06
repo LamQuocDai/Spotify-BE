@@ -1,7 +1,20 @@
 # apps/users/authentication.py
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework import HTTP_HEADER_ENCODING
 from Spotify_BE import settings
+
+def get_authorization_header(request):
+    """
+    Return request's 'Authorization:' header, as a bytestring.
+
+    Hide some test client ickyness where the header can be unicode.
+    """
+    auth = request.META.get('HTTP_AUTHORIZATION', b'')
+    if type(auth) == type(''):
+        # Work around django test client oddness
+        auth = auth.encode(HTTP_HEADER_ENCODING)
+    return auth
 
 class CustomJWTAuthentication(JWTAuthentication):
     def get_validated_token(self, raw_token):

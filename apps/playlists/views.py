@@ -12,29 +12,26 @@ from .services import (
     get_playlist,
     get_user_playlists,
     search_playlists,
-    get_all_playlists
+    get_all_playlists,
+    search_all_playlists
 )
 from ..utils.jwt_utils import decode_jwt_token
-
+from ..utils.helper import get_token
+# ------------------------------------- Views --------------------------------------
 
 @csrf_exempt
 def createPlaylist(request):
     if request.method == "POST":
         try:
-            print("Request body:", request.body)
             data = json.loads(request.body)
-            print("Parsed data:", data)
-            token = data.get("token")
-            print("Token:", token)
 
             # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response  # Trả về lỗi nếu có
 
             print("Payload:", payload)
 
-            # Tạo playlist
             playlist, response = create_playlist(data, user)
             return response
 
@@ -57,28 +54,18 @@ def createPlaylist(request):
 def updatePlaylist(request, id):
     if request.method == "PUT":
         try:
-            print("Request body:", request.body)
             data = json.loads(request.body)
-            print("Parsed data:", data)
-            token = data.get("token")
-            print("Token:", token)
 
             # Sử dụng hàm chung để giải mã token
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
-                return error_response  # Trả về lỗi nếu có
+                return error_response
 
-            print("Payload:", payload)
-
-            # Kiểm tra playlist tồn tại
             try:
                 playlist = Playlist.objects.get(id=id)
             except Playlist.DoesNotExist:
                 return JsonResponse({"status": "error", "message": "Playlist not found"}, status=404)
-            
-            print(playlist)
-            print(data)
-            # Cập nhật playlist
+
             response = update_playlist(playlist, data, user)
             return response
 
@@ -101,22 +88,18 @@ def updatePlaylist(request, id):
 def deletePlaylist(request, id):
     if request.method == "DELETE":
         try:
-            token = request.GET.get("token")
-
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response
 
             try:
                 playlist = Playlist.objects.get(id=id)
             except Playlist.DoesNotExist:
-                print("Playlist not found:", id)
                 return JsonResponse(
                     {"status": "error", "message": "Playlist not found"}, status=404
                 )
 
             response = delete_playlist(playlist, user)
-            print("Delete response:", response)
             return response
 
         except json.JSONDecodeError:
@@ -137,9 +120,7 @@ def deletePlaylist(request, id):
 def getPlaylist(request, id):
     if request.method == "GET":
         try:
-            token = request.GET.get("token")
-
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 return error_response
 
@@ -158,7 +139,6 @@ def getPlaylist(request, id):
                 {"status": "error", "message": "Internal server error: " + str(e)}, status=500
             )
 
-    print("Method not allowed")
     return JsonResponse(
         {"status": "error", "message": "Method not allowed"}, status=405
     )
@@ -169,12 +149,6 @@ def getPlaylists(request):
         try:
             page = request.GET.get("page", "1")
             page_size = request.GET.get("page_size", "10")
-            token = request.GET.get("token")
-
-            user, payload, error_response = decode_jwt_token(token)
-            if error_response:
-                return error_response
-
 
             response = get_all_playlists(page, page_size)
             return response
@@ -220,27 +194,49 @@ def getUserPlaylists(request, id):
 
 @csrf_exempt
 def searchPlaylists(request):
-    print("Entering searchPlaylists view")
     if request.method == "GET":
         try:
             query = request.GET.get("q", "")
             page = request.GET.get("page", "1")
             page_size = request.GET.get("page_size", "10")
-            token = request.GET.get("token")
 
-            # Decode JWT token
-            if not token:
-                return JsonResponse(
-                    {"status": "error", "message": "Token is required"},
-                    status=401
-                )
-            user, payload, error_response = decode_jwt_token(token)
+            user, payload, error_response = decode_jwt_token(get_token(request))
+            if error_response:
+                return error_response
+
+            response = search_playlists(user, query, page, page_size)
+            return response
+
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"status": "error", "message": "Invalid JSON data"}, status=400
+            )
+        except Exception as e:
+            return JsonResponse(
+                {"status": "error", "message": "Internal server error"}, status=500
+            )
+
+    return JsonResponse(
+        {"status": "error", "message": "Method not allowed"}, status=405
+    )
+
+@csrf_exempt
+def searchPlaylists(request):
+    if request.method == "GET":
+        try:
+            query = request.GET.get("q", "")
+            page = request.GET.get("page", "1")
+            page_size = request.GET.get("page_size", "10")
+
+            user, payload, error_response = decode_jwt_token(get_token(request))
             if error_response:
                 print("Token decode error:", error_response)
                 return error_response
 
+            print("Payload:", payload)
 
-            response = search_playlists(user, query, page, page_size)
+            response = search_playlists(user, query, page, page_size)  # User-specific search
+            print("Search playlists response:", response)
             return response
 
         except json.JSONDecodeError:
@@ -251,10 +247,44 @@ def searchPlaylists(request):
         except Exception as e:
             print("Unexpected error in searchPlaylists:", str(e))
             return JsonResponse(
-                {"status": "error", "message": "Internal server error"}, status=500
+                {"status": "error", "message": "Internal server error: " + str(e)}, status=500
             )
 
     print("Method not allowed")
+    return JsonResponse(
+        {"status": "error", "message": "Method not allowed"}, status=405
+    )
+
+@csrf_exempt
+def searchAllPlaylists(request):
+    if request.method == "GET":
+        try:
+            query = request.GET.get("q", "")
+            page = request.GET.get("page", "1")
+            page_size = request.GET.get("page_size", "10")
+
+            user, payload, error_response = decode_jwt_token(get_token(request))
+            if error_response:
+                return error_response
+
+            is_admin = user.groups.filter(name__in=['admin', 'full_role']).exists()
+            if not is_admin:
+                return JsonResponse(
+                    {"status": "error", "message": "Permission denied"}, status=403
+                )
+
+            response = search_all_playlists(query, page, page_size)  # Global search
+            return response
+
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"status": "error", "message": "Invalid JSON data"}, status=400
+            )
+        except Exception as e:
+            return JsonResponse(
+                {"status": "error", "message": "Internal server error: " + str(e)}, status=500
+            )
+
     return JsonResponse(
         {"status": "error", "message": "Method not allowed"}, status=405
     )

@@ -25,7 +25,7 @@ from django.urls import path
 from apps.users.views import create_user, get_user, get_users, update_user, delete_user
 from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getPlaylists, searchPlaylists
 from apps.users.views import create_user, get_user, get_users, update_user, delete_user
-from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getPlaylists, searchPlaylists, getUserPlaylists
+from apps.playlists.views import createPlaylist, updatePlaylist, deletePlaylist, getPlaylist, getPlaylists, searchPlaylists, getUserPlaylists, searchAllPlaylists
 from apps.song_playlist.views import (
     add_song_to_playlist, go_to_artist, view_credits, getSongsFromPlaylist,
     deleteSongFrom_Playlist, searchSongsFromPlaylist, add_to_liked_songs_view,
@@ -63,6 +63,7 @@ urlpatterns = [
     path('playlists/<uuid:id>/', getPlaylist, name='get_playlist'),
     path('playlists/<uuid:id>/user', getUserPlaylists, name='get_user_playlist'),
     path('playlists/search/', searchPlaylists, name='search_playlists'),
+    path('playlists/search-all/', searchAllPlaylists, name='search_all_playlists'),  # New endpoint
 
     # SongPlaylist URLs
     path('song_playlist/create/', add_song_to_playlist, name='create_song_playlist'),

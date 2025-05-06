@@ -50,7 +50,9 @@ def create_playlist(data, user):
 
 
 def update_playlist(playlist, data, user):
-    if playlist.user != user:
+    is_admin = user.groups.filter(name__in=['admin', 'full_role']).exists()
+
+    if playlist.user != user and not is_admin:
         return JsonResponse({
             'message': 'You do not have permission to edit this playlist'
         }, status=403)
@@ -134,11 +136,6 @@ def get_user_playlists(user):
     }, status=200)
 
 def search_playlists(user, query, page=1, page_size=10):
-    if not user.is_authenticated:
-        return JsonResponse({
-            'message': 'User not authenticated'
-        }, status=401)
-
     playlists = Playlist.objects.filter(user=user).filter(
         Q(title__icontains=query) | Q(description__icontains=query)
     ).order_by('id')
@@ -162,9 +159,45 @@ def search_playlists(user, query, page=1, page_size=10):
         }
         for playlist in paginated_playlists
     ]
+    print(playlists_data)
 
     return JsonResponse({
         'message': 'Playlists retrieved successfully',
+        'playlists': playlists_data,
+        'page': page,
+        'page_size': page_size,
+        'total_pages': paginator.num_pages,
+        'total_playlists': paginator.count
+    }, status=200)
+
+def search_all_playlists(query, page=1, page_size=10):
+    playlists = Playlist.objects.filter(
+        Q(title__icontains=query) | Q(description__icontains=query)
+    ).order_by('id')
+
+    paginator = Paginator(playlists, page_size)
+    try:
+        paginated_playlists = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_playlists = paginator.page(1)
+    except EmptyPage:
+        paginated_playlists = paginator.page(paginator.num_pages)
+
+    playlists_data = [
+        {
+            'id': str(playlist.id),
+            'title': playlist.title,
+            'description': playlist.description,
+            'song_count': playlist.song_playlists.count(),
+            'image': playlist.image,
+            'is_liked_song': playlist.is_likedSong_playlist,
+            'user': get_user_data(playlist.user)
+        }
+        for playlist in paginated_playlists
+    ]
+
+    return JsonResponse({
+        'message': 'All playlists retrieved successfully',
         'playlists': playlists_data,
         'page': page,
         'page_size': page_size,
