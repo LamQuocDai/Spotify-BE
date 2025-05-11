@@ -209,10 +209,15 @@ class SocialLoginView(generics.GenericAPIView):
 def create_user(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            print(f"Received data: {data}")
+            # Handle both JSON and form data
+            if request.content_type and 'application/json' in request.content_type:
+                data = json.loads(request.body)
+                image_file = None
+            else:
+                data = request.data
+                image_file = request.FILES.get('image_file')
 
-            user = create_user_service(data)
+            user = create_user_service(data, image_file)
             user_data = {
                 'id': str(user.id),
                 'username': user.username,
@@ -287,8 +292,15 @@ def get_user(request, user_id):
 def update_user(request, user_id):
     if request.method == 'PUT':
         try:
-            data = json.loads(request.body)
-            user = update_user_service(user_id, data)
+            # Handle both JSON and form data
+            if request.content_type and 'application/json' in request.content_type:
+                data = json.loads(request.body)
+                image_file = None
+            else:
+                data = request.data
+                image_file = request.FILES.get('image_file')
+
+            user = update_user_service(user_id, data, image_file)
             if user is None:
                 return error_response("User doesn't exist")
             user_data = {
