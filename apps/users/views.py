@@ -5,7 +5,8 @@ from django.core.serializers import serialize
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from rest_framework import generics, status, permissions
-from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
@@ -30,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]  # Công khai, không cần token
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -47,7 +48,7 @@ class RegisterView(generics.CreateAPIView):
 
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]  # Công khai, không cần token
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -69,138 +70,9 @@ class LoginView(generics.GenericAPIView):
             'access': str(refresh.access_token),
         })
 
-@csrf_exempt
-def create_user(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            print(f"Received data: {data}")
-
-            user = create_user_service(data)
-            user_data = {
-                'id': str(user.id),
-                'username': user.username,
-                'email': user.email,
-                'phone': user.phone,
-                'gender': user.gender,
-                'image': user.image,
-                'status': user.status,
-            }
-
-            return success_response("Create user success", user_data)
-        except ValueError as e:
-            return error_response(f"Validation error: {str(e)}")
-        except Exception as e:
-            print(f"Error in create_user view: {str(e)}")
-            return error_response(f"Failed to create user: {str(e)}")
-    return error_response("Method not allowed", status_code=405)
-
-@csrf_exempt
-def get_users(request):
-    if request.method == 'GET':
-        try:
-            page = request.GET.get("page", "1")
-            page_size = request.GET.get("page_size", "10")
-            try:
-                page = int(page)
-                page_size = int(page_size)
-            except ValueError:
-                return error_response("Invalid page or page_size")
-
-            result = get_users_service(page, page_size)
-            return success_response("Get list success", result)
-        except Exception as e:
-            return error_response(str(e))
-    return error_response("Method not allowed", status_code=405)
-
-@csrf_exempt
-def get_user(request, user_id):
-    if request.method == 'GET':
-        try:
-            user = get_user_service(user_id)
-            if user is None:
-                return error_response("User doesn't exist")
-            user_data = {
-                'id': str(user.id),
-                'username': user.username,
-                'email': user.email,
-                'phone': user.phone,
-                'gender': user.gender,
-                'image': user.image,
-                'status': user.status,
-            }
-            return success_response("Get user success", user_data)
-        except Exception as e:
-            return error_response(str(e))
-    return error_response("Method not allowed", status_code=405)
-
-@csrf_exempt
-def update_user(request, user_id):
-    if request.method == 'PUT':
-        try:
-            data = json.loads(request.body)
-            user = update_user_service(user_id, data)
-            if user is None:
-                return error_response("User doesn't exist")
-            user_data = {
-                'id': str(user.id),
-                'username': user.username,
-                'email': user.email,
-                'phone': user.phone,
-                'gender': user.gender,
-                'image': user.image,
-                'status': user.status,
-            }
-            return success_response("Update user success", user_data)
-        except json.JSONDecodeError:
-            return error_response("Invalid JSON data")
-        except Exception as e:
-            return error_response(str(e))
-    return error_response("Method not allowed", status_code=405)
-
-@csrf_exempt
-def delete_user(request, user_id):
-    if request.method == 'DELETE':
-        try:
-            user = delete_user_service(user_id)
-            if user is None:
-                return error_response("User doesn't exist")
-            user_data = {
-                'id': str(user.id),
-                'username': user.username,
-                'email': user.email,
-                'phone': user.phone,
-                'gender': user.gender,
-                'image': user.image,
-                'status': user.status,
-            }
-            return success_response("Delete user success", user_data)
-        except Exception as e:
-            return error_response(str(e))
-    return error_response("Method not allowed", status_code=405)
-
-@csrf_exempt
-def search_users(request):
-    if request.method == 'GET':
-        try:
-            query = request.GET.get("q", "")
-            page = request.GET.get("page", "1")
-            page_size = request.GET.get("page_size", "10")
-            try:
-                page = int(page)
-                page_size = int(page_size)
-            except ValueError:
-                return error_response("Invalid page or page_size")
-
-            result = search_users_service(query, page, page_size)
-            return success_response("Search users success", result)
-        except Exception as e:
-            return error_response(str(e))
-    return error_response("Method not allowed", status_code=405)
-
 class SocialLoginView(generics.GenericAPIView):
     serializer_class = SocialLoginSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]  # Công khai, không cần token
 
     TOKEN_URL = "https://oauth2.googleapis.com/token"
     USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
@@ -331,3 +203,144 @@ class SocialLoginView(generics.GenericAPIView):
                 {'detail': 'Authentication error'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_user(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            print(f"Received data: {data}")
+
+            user = create_user_service(data)
+            user_data = {
+                'id': str(user.id),
+                'username': user.username,
+                'email': user.email,
+                'phone': user.phone,
+                'gender': user.gender,
+                'image': user.image,
+                'status': user.status,
+            }
+
+            return success_response("Create user success", user_data)
+        except ValueError as e:
+            return error_response(f"Validation error: {str(e)}")
+        except Exception as e:
+            print(f"Error in create_user view: {str(e)}")
+            return error_response(f"Failed to create user: {str(e)}")
+    return error_response("Method not allowed", status_code=405)
+
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_users(request):
+    if request.method == 'GET':
+        try:
+            page = request.GET.get("page", "1")
+            page_size = request.GET.get("page_size", "10")
+            try:
+                page = int(page)
+                page_size = int(page_size)
+            except ValueError:
+                return error_response("Invalid page or page_size")
+
+            result = get_users_service(page, page_size)
+            return success_response("Get list success", result)
+        except Exception as e:
+            return error_response(str(e))
+    return error_response("Method not allowed", status_code=405)
+
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user(request, user_id):
+    if request.method == 'GET':
+        try:
+            user = get_user_service(user_id)
+            if user is None:
+                return error_response("User doesn't exist")
+            user_data = {
+                'id': str(user.id),
+                'username': user.username,
+                'email': user.email,
+                'phone': user.phone,
+                'gender': user.gender,
+                'image': user.image,
+                'status': user.status,
+            }
+            return success_response("Get user success", user_data)
+        except Exception as e:
+            return error_response(str(e))
+    return error_response("Method not allowed", status_code=405)
+
+@csrf_exempt
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_user(request, user_id):
+    if request.method == 'PUT':
+        try:
+            data = json.loads(request.body)
+            user = update_user_service(user_id, data)
+            if user is None:
+                return error_response("User doesn't exist")
+            user_data = {
+                'id': str(user.id),
+                'username': user.username,
+                'email': user.email,
+                'phone': user.phone,
+                'gender': user.gender,
+                'image': user.image,
+                'status': user.status,
+            }
+            return success_response("Update user success", user_data)
+        except json.JSONDecodeError:
+            return error_response("Invalid JSON data")
+        except Exception as e:
+            return error_response(str(e))
+    return error_response("Method not allowed", status_code=405)
+
+@csrf_exempt
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_user(request, user_id):
+    if request.method == 'DELETE':
+        try:
+            user = delete_user_service(user_id)
+            if user is None:
+                return error_response("User doesn't exist")
+            user_data = {
+                'id': str(user.id),
+                'username': user.username,
+                'email': user.email,
+                'phone': user.phone,
+                'gender': user.gender,
+                'image': user.image,
+                'status': user.status,
+            }
+            return success_response("Delete user success", user_data)
+        except Exception as e:
+            return error_response(str(e))
+    return error_response("Method not allowed", status_code=405)
+
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_users(request):
+    if request.method == 'GET':
+        try:
+            query = request.GET.get("q", "")
+            page = request.GET.get("page", "1")
+            page_size = request.GET.get("page_size", "10")
+            try:
+                page = int(page)
+                page_size = int(page_size)
+            except ValueError:
+                return error_response("Invalid page or page_size")
+
+            result = search_users_service(query, page, page_size)
+            return success_response("Search users success", result)
+        except Exception as e:
+            return error_response(str(e))
+    return error_response("Method not allowed", status_code=405)
