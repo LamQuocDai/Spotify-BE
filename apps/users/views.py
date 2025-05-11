@@ -1,30 +1,27 @@
 import json
-
 import requests
 import uuid
-
-from django.core.serializers import serialize
-import json
 from django.core.serializers import serialize
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status, permissions
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from rest_framework_simplejwt.views import TokenObtainPairView
 from social_django.models import UserSocialAuth
 import logging
 from django.core.cache import cache
-from .services import create_user_service, get_users_service, get_user_service, update_user_service, delete_user_service
-from apps.utils.response import success_response, error_response
-
-from .services import create_user_service, get_users_service, get_user_service, update_user_service, delete_user_service
+from .services import (
+    create_user_service,
+    get_users_service,
+    get_user_service,
+    update_user_service,
+    delete_user_service,
+    search_users_service
+)
 from Spotify_BE import settings
-from .serializers import RegisterSerializer, UserSerializer, LoginSerializer, SocialLoginSerializer, \
-    CustomTokenObtainPairSerializer
+from .serializers import RegisterSerializer, UserSerializer, LoginSerializer, SocialLoginSerializer
 from .models import User
 from apps.utils.response import success_response, error_response
 
@@ -72,20 +69,14 @@ class LoginView(generics.GenericAPIView):
             'access': str(refresh.access_token),
         })
 
-
 @csrf_exempt
 def create_user(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-
-            # Validate the received data
             print(f"Received data: {data}")
 
-            # Create the user
             user = create_user_service(data)
-
-            # Serialize the user data for the response
             user_data = {
                 'id': str(user.id),
                 'username': user.username,
@@ -97,37 +88,51 @@ def create_user(request):
             }
 
             return success_response("Create user success", user_data)
-
         except ValueError as e:
-            # Handle validation errors
             return error_response(f"Validation error: {str(e)}")
         except Exception as e:
-            # Handle other exceptions
             print(f"Error in create_user view: {str(e)}")
             return error_response(f"Failed to create user: {str(e)}")
+    return error_response("Method not allowed", status_code=405)
 
-
+@csrf_exempt
 def get_users(request):
     if request.method == 'GET':
         try:
-            users = get_users_service()
-            return success_response("Get list success", users)
+            page = request.GET.get("page", "1")
+            page_size = request.GET.get("page_size", "10")
+            try:
+                page = int(page)
+                page_size = int(page_size)
+            except ValueError:
+                return error_response("Invalid page or page_size")
+
+            result = get_users_service(page, page_size)
+            return success_response("Get list success", result)
         except Exception as e:
-            return error_response(e.__str__())
+            return error_response(str(e))
+    return error_response("Method not allowed", status_code=405)
 
-
+@csrf_exempt
 def get_user(request, user_id):
     if request.method == 'GET':
         try:
             user = get_user_service(user_id)
-
-            user_json = json.loads(serialize('json', [user]))[0]['fields']
             if user is None:
                 return error_response("User doesn't exist")
-            return success_response("Get user success", user_json)
+            user_data = {
+                'id': str(user.id),
+                'username': user.username,
+                'email': user.email,
+                'phone': user.phone,
+                'gender': user.gender,
+                'image': user.image,
+                'status': user.status,
+            }
+            return success_response("Get user success", user_data)
         except Exception as e:
-            return error_response(e.__str__())
-
+            return error_response(str(e))
+    return error_response("Method not allowed", status_code=405)
 
 @csrf_exempt
 def update_user(request, user_id):
@@ -137,35 +142,70 @@ def update_user(request, user_id):
             user = update_user_service(user_id, data)
             if user is None:
                 return error_response("User doesn't exist")
-            user_json = json.loads(serialize('json', [user]))[0]['fields']
-            return success_response("Update user success", user_json)
+            user_data = {
+                'id': str(user.id),
+                'username': user.username,
+                'email': user.email,
+                'phone': user.phone,
+                'gender': user.gender,
+                'image': user.image,
+                'status': user.status,
+            }
+            return success_response("Update user success", user_data)
+        except json.JSONDecodeError:
+            return error_response("Invalid JSON data")
         except Exception as e:
-            return error_response(e.__str__())
-
+            return error_response(str(e))
+    return error_response("Method not allowed", status_code=405)
 
 @csrf_exempt
 def delete_user(request, user_id):
     if request.method == 'DELETE':
         try:
-            user = get_user_service(user_id)
+            user = delete_user_service(user_id)
             if user is None:
                 return error_response("User doesn't exist")
-            user = delete_user_service(user_id)
-            user_json = json.loads(serialize('json', [user]))[0]['fields']
-            return success_response("Delete user success", user_json)
+            user_data = {
+                'id': str(user.id),
+                'username': user.username,
+                'email': user.email,
+                'phone': user.phone,
+                'gender': user.gender,
+                'image': user.image,
+                'status': user.status,
+            }
+            return success_response("Delete user success", user_data)
         except Exception as e:
-            return error_response(e.__str__())
+            return error_response(str(e))
+    return error_response("Method not allowed", status_code=405)
+
+@csrf_exempt
+def search_users(request):
+    if request.method == 'GET':
+        try:
+            query = request.GET.get("q", "")
+            page = request.GET.get("page", "1")
+            page_size = request.GET.get("page_size", "10")
+            try:
+                page = int(page)
+                page_size = int(page_size)
+            except ValueError:
+                return error_response("Invalid page or page_size")
+
+            result = search_users_service(query, page, page_size)
+            return success_response("Search users success", result)
+        except Exception as e:
+            return error_response(str(e))
+    return error_response("Method not allowed", status_code=405)
 
 class SocialLoginView(generics.GenericAPIView):
     serializer_class = SocialLoginSerializer
     permission_classes = [permissions.AllowAny]
 
-    # Google OAuth URLs
     TOKEN_URL = "https://oauth2.googleapis.com/token"
     USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 
     def post(self, request, *args, **kwargs):
-        # Validate request data
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             logger.error("Serializer errors: %s", serializer.errors)
@@ -174,7 +214,6 @@ class SocialLoginView(generics.GenericAPIView):
         code = serializer.validated_data['code']
         logger.info("Processing Google login: code=%s", code[:10] + "...")
 
-        # Check for code reuse
         cache_key = f"auth_code:{code}"
         if cache.get(cache_key):
             logger.warning("Authorization code already used: %s", code[:10] + "...")
@@ -184,7 +223,6 @@ class SocialLoginView(generics.GenericAPIView):
             )
 
         try:
-            # Get access token
             logger.info("Requesting access token from: %s", self.TOKEN_URL)
             token_response = requests.post(
                 self.TOKEN_URL,
@@ -211,10 +249,8 @@ class SocialLoginView(generics.GenericAPIView):
                     status=status.HTTP_401_UNAUTHORIZED
                 )
 
-            # Cache the code
             cache.set(cache_key, True, timeout=60)
 
-            # Get user info
             logger.info("Fetching user info from: %s", self.USER_INFO_URL)
             user_response = requests.get(
                 self.USER_INFO_URL,
@@ -242,12 +278,11 @@ class SocialLoginView(generics.GenericAPIView):
             picture = user_data.get('picture')
             provider_id = user_data.get('sub')
 
-            # Create or update user
             with transaction.atomic():
                 user, created = User.objects.select_for_update().get_or_create(
                     email=email,
                     defaults={
-                        'username': email.split('@')[0][:15],  # Base username
+                        'username': email.split('@')[0][:15],
                         'first_name': name.split()[0] if name and ' ' in name else name,
                         'last_name': ' '.join(name.split()[1:]) if name and ' ' in name else '',
                         'image': picture,
@@ -258,20 +293,17 @@ class SocialLoginView(generics.GenericAPIView):
                     user.save()
                     logger.info("Created new user: username=%s, email=%s", user.username, email)
                 else:
-                    # Update existing user
                     user.first_name = name.split()[0] if name and ' ' in name else name
                     user.last_name = ' '.join(name.split()[1:]) if name and ' ' in name else ''
                     user.image = picture
                     user.save()
                     logger.info("Updated user: username=%s, email=%s", user.username, email)
 
-                # Handle username collisions
                 if created and User.objects.filter(username=user.username).exclude(id=user.id).exists():
                     user.username = f"{user.username[:10]}_{uuid.uuid4().hex[:4]}"
                     user.save()
                     logger.info("Updated username due to collision: %s", user.username)
 
-                # Create or update social auth
                 social_auth, social_created = UserSocialAuth.objects.update_or_create(
                     user=user,
                     provider='google',
@@ -280,7 +312,6 @@ class SocialLoginView(generics.GenericAPIView):
                 logger.info("Social auth %s: user=%s, uid=%s",
                            "created" if social_created else "updated", user.username, provider_id)
 
-                # Generate tokens with custom payload
                 refresh = RefreshToken.for_user(user)
                 refresh['first_name'] = user.first_name
                 refresh['username'] = user.username
@@ -294,7 +325,6 @@ class SocialLoginView(generics.GenericAPIView):
                     'refresh': str(refresh),
                     'access': str(refresh.access_token),
                 }, status=status.HTTP_200_OK)
-
         except Exception as e:
             logger.error("Authentication error: %s", str(e))
             return Response(
