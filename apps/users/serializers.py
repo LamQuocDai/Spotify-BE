@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth.models import Group
 from .models import User
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -12,6 +13,13 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['user_id'] = str(user.id)
         # Get user groups (roles)
         token['groups'] = list(user.groups.values_list('name', flat=True))
+        # Add role based on groups or superuser status
+        if user.is_superuser:
+            token['role'] = 'admin'
+        elif user.groups.filter(name='admin').exists():
+            token['role'] = 'admin'
+        else:
+            token['role'] = 'user'
 
         return token
 
@@ -41,16 +49,30 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         user.set_password(validated_data['password'])
         user.save()
+
+        # Gán người dùng vào nhóm 'user' mặc định
+        user_group, _ = Group.objects.get_or_create(name='user')
+        user.groups.add(user_group)
+
         return user
 
 class UserSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = User
-            fields = ('id', 'username', 'email', 'first_name', 'last_name', 'phone', 'gender', 'image', 'status')
+    role = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'phone', 'gender', 'image', 'status', 'role')
+
+    def get_role(self, obj):
+        if obj.is_superuser:
+            return 'admin'
+        elif obj.groups.filter(name='admin').exists():
+            return 'admin'
+        return 'user'
 
 class LoginSerializer(serializers.Serializer):
-        username = serializers.CharField(required=True)
-        password = serializers.CharField(required=True, write_only=True)
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
 
 class SocialLoginSerializer(serializers.Serializer):
     code = serializers.CharField(required=True)

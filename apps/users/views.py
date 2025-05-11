@@ -22,23 +22,24 @@ from .services import (
     search_users_service
 )
 from Spotify_BE import settings
-from .serializers import RegisterSerializer, UserSerializer, LoginSerializer, SocialLoginSerializer
+from .serializers import RegisterSerializer, UserSerializer, LoginSerializer, SocialLoginSerializer, CustomTokenObtainPairSerializer
 from .models import User
 from apps.utils.response import success_response, error_response
+from django.contrib.auth.models import Group
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]  # Công khai, không cần token
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        refresh = RefreshToken.for_user(user)
+        refresh = CustomTokenObtainPairSerializer.get_token(user)
 
         return Response({
             'user': UserSerializer(user).data,
@@ -48,7 +49,7 @@ class RegisterView(generics.CreateAPIView):
 
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
-    permission_classes = [AllowAny]  # Công khai, không cần token
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -62,7 +63,7 @@ class LoginView(generics.GenericAPIView):
         if user is None:
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        refresh = RefreshToken.for_user(user)
+        refresh = CustomTokenObtainPairSerializer.get_token(user)
 
         return Response({
             'user': UserSerializer(user).data,
@@ -72,7 +73,7 @@ class LoginView(generics.GenericAPIView):
 
 class SocialLoginView(generics.GenericAPIView):
     serializer_class = SocialLoginSerializer
-    permission_classes = [AllowAny]  # Công khai, không cần token
+    permission_classes = [AllowAny]
 
     TOKEN_URL = "https://oauth2.googleapis.com/token"
     USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
@@ -163,6 +164,9 @@ class SocialLoginView(generics.GenericAPIView):
                 if created:
                     user.set_unusable_password()
                     user.save()
+                    # Gán người dùng vào nhóm 'user' mặc định
+                    user_group, _ = Group.objects.get_or_create(name='user')
+                    user.groups.add(user_group)
                     logger.info("Created new user: username=%s, email=%s", user.username, email)
                 else:
                     user.first_name = name.split()[0] if name and ' ' in name else name
@@ -184,12 +188,7 @@ class SocialLoginView(generics.GenericAPIView):
                 logger.info("Social auth %s: user=%s, uid=%s",
                            "created" if social_created else "updated", user.username, provider_id)
 
-                refresh = RefreshToken.for_user(user)
-                refresh['first_name'] = user.first_name
-                refresh['username'] = user.username
-                refresh['email'] = user.email
-                refresh['image'] = user.image or ''
-                refresh['role'] = user.role if hasattr(user, 'role') else 'user'
+                refresh = CustomTokenObtainPairSerializer.get_token(user)
 
                 logger.info("Returning response for user: %s", user.username)
                 return Response({
@@ -222,6 +221,7 @@ def create_user(request):
                 'gender': user.gender,
                 'image': user.image,
                 'status': user.status,
+                'role': 'admin' if user.groups.filter(name='admin').exists() or user.is_superuser else 'user'
             }
 
             return success_response("Create user success", user_data)
@@ -247,6 +247,11 @@ def get_users(request):
                 return error_response("Invalid page or page_size")
 
             result = get_users_service(page, page_size)
+            # Cập nhật kết quả để thêm role
+            for user_data in result.get('data', []):
+                user = User.objects.get(id=user_data['id'])
+                user_data['role'] = 'admin' if user.groups.filter(name='admin').exists() or user.is_superuser else 'user'
+
             return success_response("Get list success", result)
         except Exception as e:
             return error_response(str(e))
@@ -269,6 +274,7 @@ def get_user(request, user_id):
                 'gender': user.gender,
                 'image': user.image,
                 'status': user.status,
+                'role': 'admin' if user.groups.filter(name='admin').exists() or user.is_superuser else 'user'
             }
             return success_response("Get user success", user_data)
         except Exception as e:
@@ -293,6 +299,7 @@ def update_user(request, user_id):
                 'gender': user.gender,
                 'image': user.image,
                 'status': user.status,
+                'role': 'admin' if user.groups.filter(name='admin').exists() or user.is_superuser else 'user'
             }
             return success_response("Update user success", user_data)
         except json.JSONDecodeError:
@@ -318,6 +325,7 @@ def delete_user(request, user_id):
                 'gender': user.gender,
                 'image': user.image,
                 'status': user.status,
+                'role': 'admin' if user.groups.filter(name='admin').exists() or user.is_superuser else 'user'
             }
             return success_response("Delete user success", user_data)
         except Exception as e:
@@ -340,6 +348,11 @@ def search_users(request):
                 return error_response("Invalid page or page_size")
 
             result = search_users_service(query, page, page_size)
+            # Cập nhật kết quả để thêm role
+            for user_data in result.get('data', []):
+                user = User.objects.get(id=user_data['id'])
+                user_data['role'] = 'admin' if user.groups.filter(name='admin').exists() or user.is_superuser else 'user'
+
             return success_response("Search users success", result)
         except Exception as e:
             return error_response(str(e))
